@@ -73,5 +73,28 @@ START:
     MOV AX, @DATA
     MOV DS, AX
 
+    ; start vga
+	MOV AX,12h
+	INT 10h
+
+    ;;CALL START MENU
+
+    ;;MENU LOOP
+
+    ;;CALL INSTRUCTION MENU
+
+    ;;START GAME
+
+    ;;GAME INNER LOOP
+    
+    ;;CHECK WIN
+
+    ;;CALL END GAME MENU
+
+    ;;RESTART GAME
+
+    ;;QUIT GAME
+
+
 Main endp
 END Main
