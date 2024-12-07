@@ -2,24 +2,24 @@
 .STACK 100h
 	
 .DATA
-	rect_x word 0
-	rect_y word 0
-	rectwidth word 0
-	rectheight word 0
-	rectcolour byte 0
+	rect_x dw 0
+	rect_y dw 0
+	rectwidth dw 0
+	rectheight dw 0
+	rectcolour db 0
 
-	ball_x word 0
-	ball_y word 0
+	ball_x dw 0
+	ball_y dw 0
 	
-	ScoreCounter Byte 0
-	CurrentLives word 3
-	Level_Selector word 1
+	ScoreCounter db 0
+	CurrentLives dw 3
+	Level_Selector dw 1
 
-	bool_boxs word 1
-	Bool_BoxExist word 1
-	Bool_Box word 1, 1, 1, 1, 1, 1, 1, 1
+	bool_boxs dw 1
+	Bool_BoxExist dw 1
+	Bool_Box dw 1, 1, 1, 1, 1, 1, 1, 1
 
-	start_menu_option byte 1
+	start_menu_option db 1
 	string_start_game db 'START GAME$'
 	string_exit_game db 'EXIT GAME$'
 	one db '1)$'
@@ -40,7 +40,7 @@ SetCursorPos MACRO row, col
 ENDM
 BoxCreator PROC
 	
-	mov cx, lengthof Bool_Box
+	mov cx, 8
 	mov si, offset Bool_Box
 	
 	mov Bool_BoxExist, 1
@@ -213,10 +213,10 @@ kbloop:
 	je movedown
 	cmp bl, 13
 	je select
-	cmp bl,'1'
-	je stgm
 	cmp bl,'2'
 	je exit
+	cmp bl,'1'
+	jmp stgm
 moveup:
     mov rectcolour, 0  ; erase ball
     call drawball
