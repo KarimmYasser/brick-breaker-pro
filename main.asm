@@ -39,8 +39,7 @@ SetCursorPos MACRO row, col
 		                            int          10h
 ENDM
 BoxCreator PROC
-	
-	                   mov          cx, lengthof Bool_Box
+	                   mov          cx, 8
 	                   mov          si, offset Bool_Box
 	
 	                   mov          Bool_BoxExist, 1
