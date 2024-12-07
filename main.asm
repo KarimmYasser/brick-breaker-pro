@@ -213,7 +213,9 @@ start_menu proc
 	                   cmp          bl, 13
 	                   je           select
 	                   cmp          bl,'1'
-	                   je           stgm
+	                   jne          nxtcmp
+					   jmp		    stgm
+	nxtcmp:
 	                   cmp          bl,'2'
 	                   je           exit
 	moveup:            
