@@ -1,100 +1,308 @@
 .MODEL SMALL
 .STACK 100h
-
+	
 .DATA
-start_game DB 0
+	rect_x word 0
+	rect_y word 0
+	rectwidth word 0
+	rectheight word 0
+	rectcolour byte 0
 
-inst DB 'PRESS I TO GO INTO INSTRUCTION BOX', 0
-oldisr DD 0
-colume DW 0
-row DW 0
-incC DB 0
-incR DB 0
-previous DW 0
-tickcount DB 0
-left_edge DW 3524
-right_edge DW 3652
-right_ DW 0
-left_ DW 0
-pre_stack_pos DW 3580
+	ball_x word 0
+	ball_y word 0
+	
+	ScoreCounter Byte 0
+	CurrentLives word 3
+	Level_Selector word 1
 
-second DW 0
-minute DB 0
-clock DB 0
-bonus DW 0
+	bool_boxs word 1
+	Bool_BoxExist word 1
+	Bool_Box word 1, 1, 1, 1, 1, 1, 1, 1
 
-bricks_start_location DW 810, 828, 846, 864, 882, 900, 918, 936, 1290, 1308, 1326, 1344, 1362, 1380, 1398, 1416, 1770, 1788, 1806, 1824, 1842, 1860, 1878, 1896
-bricks_end_location DW 822, 840, 858, 876, 894, 912, 930, 948, 1302, 1320, 1338, 1356, 1374, 1392, 1414, 1428, 1782, 1800, 1818, 1836, 1854, 1872, 1890, 1908
-
-score DW 0
-total_bricks DW 24
-calculated_location DW 0
-left_limit DW 0
-right_limit DW 0
-mid DW 0
-left_or_right DB 0
-preBall DW 0
-
-live DB 3
-end_of_game DW 0
-StayOnStacker DB 0
-
-counter DW 0
-solid DB 0
-solid1 DB 0
-
-Lose_str DB 'YOU_LOSE', 0
-Score_str DB 'SCORE', 0
-Lives_str DB 'LIVES', 0
-
-welcome_str DB 'WELCOME TO BRICK BREAKER', 0
-option_str DB 'PLEASE SELECT OPTIONS', 0
-instructions_str DB 'INSTRUCTION', 0
-play_str DB 'PRESS ENTER TO PLAY GAME', 0
-
-ttl_live_str DB 'YOUR TOTAL LIVES ARE 3', 0
-bonus_note_str DB 'BONUS AWARDED IF BREAK ALL BRICKS IN 2 MINS', 0
-solid_base_str DB 'HITTING RED BRICK WILL SOLIDIFY YOUR BASE', 0
-
-space_bar DB 'PRESS SPACE BAR TO RELEASE BALL', 0
-
-total_score_str DB 'YOUR TOTAL SCORES :', 0
-lives_remain_str DB 'LIVES REMAINING', 0
-exit_str DB 'PRESS E TO EXIT', 0
-quit_str DB 'PRESS ENTER+Q TO QUIT GAME', 0
-restart_str DB 'PRESS ENTER+R TO RESTART YOUR GAME', 0
-
-left_arrow DB 'USE RIGHT & LEFT ARROW TO MOVE BAR', 0
-
+	start_menu_option byte 1
+	string_start_game db 'START GAME$'
+	string_exit_game db 'EXIT GAME$'
+	one db '1)$'
+	two db '2)$'
+	
 .CODE
+PrintString MACRO string
+    lea dx, string
+    mov ah, 09H
+    int 21h
+ENDM
+SetCursorPos MACRO row, col
+    mov ah, 02H
+    mov bh, 0
+    mov dh, row
+    mov dl, col
+    int 10h
+ENDM
+BoxCreator PROC
+	
+	mov cx, lengthof Bool_Box
+	mov si, offset Bool_Box
+	
+	mov Bool_BoxExist, 1
+	mov ax, Level_Selector
+	
+loopBC:
+	
+	mov [si], ax
+	
+	add si, 2
+	
+	loop loopBC
+	
+	ret
+BoxCreator ENDP
+DrawRectangle PROC
+	
+	push cx
+	
+	mov Al, rectcolour
+	mov CX, rect_x
+	dec cx				; 0 based
+	add CX, rectwidth	
+	mov DX, rect_y
+	add DX, rectheight
+looprectvertical:
+looprecthorizontal:
+	mov ah, 0Ch
+	int 10h
+	dec cx
+	cmp CX, rect_x
+	jge looprectvertical
+	add CX, rectwidth
+	dec dx
+	cmp DX, rect_y
+	jge looprecthorizontal
+	
+	
+	pop cx
+	ret
+DrawRectangle ENDP
+boarder proc
+	
+	
+	mov rectcolour, 14
+	mov rectwidth, 320
+	mov rectheight, 200
+	mov rect_x, 0
+	mov rect_y, 0
+	call DrawRectangle
+	
+	mov rectcolour, 0
+	mov rectwidth, 292           ; 320 - 14 - 14
+	mov rectheight, 180          ; 200 - 10 - 10
+	mov rect_x, 14
+	mov rect_y, 10
+	call DrawRectangle
+	ret
+boarder endp
+delay proc
+    push ax
+    push bx
+    push cx
+    push dx
+
+    mov cx, 11000
+
+    mov ax, Level_Selector
+    cmp ax, 1
+    je level1
+    cmp ax, 2
+    je level2
+    cmp ax, 3
+    je level3
+    jmp end_set_delay
+
+level1:
+    mov bx, 15
+    jmp end_set_delay
+
+level2:
+    mov bx, 10
+    jmp end_set_delay
+
+level3:
+    mov bx, 5
+
+end_set_delay:
+
+mydelay:
+    push cx
+    mov cx, bx
+mydelay1:
+    dec cx
+    jnz mydelay1
+    pop cx
+    loop mydelay
+
+    pop dx
+    pop cx
+    pop bx
+    pop ax
+
+    ret
+delay ENDP
+drawball proc
+	mov rectwidth, 6
+	mov rectheight, 6
+
+	mov ax, ball_x
+	mov rect_x, ax
+	mov ax, ball_y
+	mov rect_y, ax
+	call DrawRectangle
+
+	sub rectwidth, 2
+	add rectheight, 2
+	add	rect_x, 1
+	sub rect_y, 1
+	call DrawRectangle
+
+	add rectwidth, 4
+	sub rectheight, 4
+	sub	rect_x, 2
+	add rect_y, 2
+	call DrawRectangle
+
+	ret
+drawball endp
+draw_start_menu proc
+	SetCursorPos 8, 16
+	PrintString string_start_game
+	SetCursorPos 8, 12
+	PrintString one
+	SetCursorPos 14, 16
+	PrintString string_exit_game
+	SetCursorPos 14, 12
+	PrintString two
+	ret
+draw_start_menu endp
+start_menu proc
+ToMenu:
+	mov ah, 0h
+	mov al, 13h                  ;320x200
+	int 10h
+
+	call boarder
+	call draw_start_menu
+	mov rectcolour,15        ;ball colour
+	mov start_menu_option, 1
+	mov ball_x, 84			
+	mov ball_y, 64
+	call drawball			 ;draw on selected option
+kbloop:
+	xor ax, ax
+	xor bx, bx
+	xor cx, cx
+	xor dx, dx
+	mov ah, 0Ch
+	int 21h					;clear keyboard buffer
+	call delay
+
+	mov ah, 1
+	int 16h
+	mov bx, ax
+	jz kbloop
+	cmp bh, 48h
+	je moveup
+	cmp bh, 50h
+	je movedown
+	cmp bl, 13
+	je select
+	cmp bl,'1'
+	je stgm
+	cmp bl,'2'
+	je exit
+moveup:
+    mov rectcolour, 0  ; erase ball
+    call drawball
+    dec start_menu_option
+    cmp start_menu_option, 0
+    jg calcOption
+    mov start_menu_option, 2
+    jmp calcOption
+
+movedown:
+    mov rectcolour, 0  ; erase ball
+    call drawball
+    inc start_menu_option
+    cmp start_menu_option, 3
+    jl calcOption
+    mov start_menu_option, 1
+    jmp calcOption
+calcOption:
+	cmp start_menu_option, 2
+	je option2
+	mov ball_x, 84
+	mov ball_y, 64
+	mov rectcolour, 15
+	call drawball
+	jmp kbloop
+option2:
+	mov ball_x, 84
+	mov ball_y, 112
+	mov rectcolour, 15
+	call drawball
+	jmp kbloop
+select:
+	cmp start_menu_option, 1
+	je stgm
+	cmp start_menu_option, 2
+	jne stgm
+exit:
+	SetCursorPos 98, 18
+	mov ah, 4Ch
+	int 21h			;exit
+stgm:
+	call boarder
+	ret
+start_menu endp
+
+	
 Main proc far
-START:
-    ; Initialize the data segment
-    MOV AX, @DATA
-    MOV DS, AX
-
-    ; start vga
-	MOV AX,12h
+	; Initialize the data segment
+	MOV AX, @DATA
+	MOV DS, AX
+	
+	; start vga
+	mov ah, 0
+	mov al, 13h
 	INT 10h
-
-    ;;CALL START MENU
-
-    ;;MENU LOOP
-
-    ;;CALL INSTRUCTION MENU
-
-    ;;START GAME
-
-    ;;GAME INNER LOOP
-    
-    ;;CHECK WIN
-
-    ;;CALL END GAME MENU
-
-    ;;RESTART GAME
-
-    ;;QUIT GAME
-
-
+	
+	;intialize the game data
+	mov CurrentLives, 3
+	mov ScoreCounter, 0
+	mov bool_boxs, 1
+	call BoxCreator              ;intialize the boxs based on the level
+	
+	;;CALL START MENU
+	call boarder
+	call start_menu
+	;mov ah, 0h
+	;mov al, 13h                  ;320x200
+	;int 10h
+	
+	
+	;;MENU LOOP
+	
+	;;CALL INSTRUCTION MENU
+	
+	;;START GAME
+	
+	;;GAME INNER LOOP
+	
+	;;CHECK WIN
+	
+	;;CALL END GAME MENU
+	
+	;;RESTART GAME
+	
+	;;QUIT GAME
+	
+	
 Main endp
 END Main
