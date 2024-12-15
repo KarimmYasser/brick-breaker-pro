@@ -18,12 +18,15 @@
 	bool_boxs         dw 1
 	Bool_BoxExist     dw 1
 	Bool_Box          dw 1, 1, 1, 1, 1, 1, 1, 1
+	NumBoolBox		  dw 8
 
 	start_menu_option db 1
 	string_start_game db 'START GAME$'
 	string_exit_game  db 'EXIT GAME$'
 	one               db '1)$'
 	two               db '2)$'
+	levelnum_string   db '(1)        (2)       (3)$'
+	level_string 	  db 'LEVEL      LEVEL     LEVEL$'
 	
 .CODE
 PrintString MACRO string
@@ -39,7 +42,7 @@ SetCursorPos MACRO row, col
 		                            int          10h
 ENDM
 BoxCreator PROC
-	                   mov          cx, 8
+	                   mov          cx, NumBoolBox
 	                   mov          si, offset Bool_Box
 	
 	                   mov          Bool_BoxExist, 1
@@ -99,6 +102,16 @@ boarder proc
 	                   call         DrawRectangle
 	                   ret
 boarder endp
+gameBoarder proc
+					   call		 	boarder
+					   mov          rectcolour, 14
+	                   mov          rectwidth, 2
+	                   mov          rectheight, 200
+	                   mov          rect_x, 154
+	                   mov          rect_y, 0
+	                   call         DrawRectangle
+	                   ret
+gameBoarder endp
 delay proc
 	                   push         ax
 	                   push         bx
@@ -255,14 +268,102 @@ start_menu proc
 	                   cmp          start_menu_option, 2
 	                   jne          stgm
 	exit:              
-	                   SetCursorPos 98, 18
+					   SetCursorPos 18, 1
 	                   mov          ah, 4Ch
 	                   int          21h                  	;exit
 	stgm:              
-	                   call         boarder
+	                   call         gameBoarder
 	                   ret
 start_menu endp
+level_select proc
+					   mov ah, 0
+  					   mov al, 13h    ;320x200
+					   int 10h
+					   call boarder
 
+
+
+					   mov AH, 0Ch 		;Clear Buffer
+					   int 21h
+					   SetCursorPos 4, 7
+
+					   lea dx,levelnum_string
+					   mov ah,09h
+					   int 21h
+
+					   mov AH, 0Ch		;Clear Buffer
+					   int 21h
+
+					   SetCursorPos 12, 6
+
+					   lea dx,level_string
+					   mov ah,09h
+					   int 21h
+
+					   mov AH, 0Ch		;Clear Buffer
+					   int 21h
+
+					   SetCursorPos 14, 7
+
+					   lea dx,levelnum_string
+					   mov ah,09h
+					   int 21h
+
+					   mov AH, 0Ch		;Clear Buffer
+					   int 21h
+
+
+					   mov rectcolour, 1
+					   mov rectwidth, 40
+					   mov rectheight, 26
+
+					   mov rect_x, 48
+					   mov rect_y, 46
+					   call DrawRectangle
+				   
+					   mov rectcolour,13
+					   mov rect_x,136
+					   call DrawRectangle
+				   
+					   mov rectcolour,4
+					   mov rect_x,217
+					   call DrawRectangle
+	again_and_again:
+					   mov AH, 0Ch		;Clear Buffer
+					   int 21h
+					   call delay
+					   mov ah, 1
+					   int 16h
+					   mov bx,ax
+					   jz again_and_again
+					   cmp bl, '1'
+    				   je set_level_1
+    				   cmp bl, '2'
+    				   je set_level_2
+    				   cmp bl, '3'
+    				   je set_level_3
+    				   cmp bl, 13
+    				   je startmenu
+    				   cmp bl, 8
+    				   je startmenu
+    				   cmp bl, 27
+    				   je startmenu
+
+	set_level_1:
+    				   mov Level_Selector, 1
+    				   jmp startgame
+
+	set_level_2:
+    				   mov Level_Selector, 2
+    				   jmp startgame
+
+	set_level_3:
+    				   mov Level_Selector, 3
+    				   jmp startgame
+	
+					   call boarder
+					   ret
+level_select endp
 	
 Main proc far
 	; Initialize the data segment
@@ -281,18 +382,13 @@ Main proc far
 	                   call         BoxCreator           	;intialize the boxs based on the level
 	
 	;;CALL START MENU
-	                   call         boarder
+	startmenu:
 	                   call         start_menu
-	;mov ah, 0h
-	;mov al, 13h                  ;320x200
-	;int 10h
-	
-	
-	;;MENU LOOP
-	
-	;;CALL INSTRUCTION MENU
-	
+	;;CALL LEVEL SELECT
+	                   call         level_select
 	;;START GAME
+	startgame:
+	                   call         boarder
 	
 	;;GAME INNER LOOP
 	
