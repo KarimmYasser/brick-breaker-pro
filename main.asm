@@ -206,11 +206,11 @@ start_menu proc
 	                   mov          ball_x, 84
 	                   mov          ball_y, 64
 	                   call         drawball             	;draw on selected option
-	kbloop:            
 	                   xor          ax, ax
 	                   xor          bx, bx
 	                   xor          cx, cx
 	                   xor          dx, dx
+	kbloop:            
 	                   mov          ah, 0Ch
 	                   int          21h                  	;clear keyboard buffer
 	                   call         delay
@@ -224,20 +224,27 @@ start_menu proc
 	                   cmp          bh, 50h
 	                   je           movedown
 	                   cmp          bl, 13
-	                   je           select
+					   jne		    nxtcmp1
+	                   jmp          select
+	nxtcmp1:
 	                   cmp          bl,'1'
-	                   jne          nxtcmp
+	                   jne          nxtcmp2
 					   jmp		    stgm
-	nxtcmp:
+	nxtcmp2:
 	                   cmp          bl,'2'
+	                   jne          nxtcmp3
+					   jmp		    exit
+	nxtcmp3:
+	                   cmp          bl, 27
 	                   je           exit
+					   jmp		    kbloop
 	moveup:            
 	                   mov          rectcolour, 0        	; erase ball
 	                   call         drawball
 	                   dec          start_menu_option
 	                   cmp          start_menu_option, 0
 	                   jg           calcOption
-	                   mov          start_menu_option, 2
+	                   mov          start_menu_option, 1
 	                   jmp          calcOption
 
 	movedown:          
@@ -246,7 +253,7 @@ start_menu proc
 	                   inc          start_menu_option
 	                   cmp          start_menu_option, 3
 	                   jl           calcOption
-	                   mov          start_menu_option, 1
+	                   mov          start_menu_option, 2
 	                   jmp          calcOption
 	calcOption:        
 	                   cmp          start_menu_option, 2
@@ -272,7 +279,6 @@ start_menu proc
 	                   mov          ah, 4Ch
 	                   int          21h                  	;exit
 	stgm:              
-	                   call         gameBoarder
 	                   ret
 start_menu endp
 level_select proc
@@ -351,15 +357,15 @@ level_select proc
 
 	set_level_1:
     				   mov Level_Selector, 1
-    				   jmp startgame
+    				   ret
 
 	set_level_2:
     				   mov Level_Selector, 2
-    				   jmp startgame
+    				   ret
 
 	set_level_3:
     				   mov Level_Selector, 3
-    				   jmp startgame
+    				   ret
 	
 					   call boarder
 					   ret
@@ -388,7 +394,7 @@ Main proc far
 	                   call         level_select
 	;;START GAME
 	startgame:
-	                   call         boarder
+	                   call         gameBoarder
 	
 	;;GAME INNER LOOP
 	
@@ -399,7 +405,8 @@ Main proc far
 	;;RESTART GAME
 	
 	;;QUIT GAME
-	
-	
+					   SetCursorPos 18, 1
+	                   mov          ah, 4Ch
+	                   int          21h                  	;exit
 Main endp
 END Main
