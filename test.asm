@@ -1,58 +1,98 @@
-public TestProc
+; public TestProc2
 
 .model small
 .stack 100h
 
 .data
-    x          dw 0Ah    ; Ball x coordinate
-    y          dw 0Ah    ; Ball y coordinate
-    squareSize dw 30h
+	x            dw 11h                                             	; Ball x coordinate
+	y            dw 10h                                             	; Ball y coordinate
+	brick_width  dw 18h
+	brick_height dw 08h
+
+	starting_x   dw 11h, 2Ch, 47h, 62h, 7Dh
+	starting_y   dw 10h, 1Bh, 26h, 31h, 3Ch
+	colors       db 50h, 50h, 52h, 52h, 54h, 54h, 56h, 56h, 58h, 58h
+
+	bricks_no    dw 5
 
 .code
 
 main proc far
-                    mov ax, @data
-                    mov ds, ax
+	                mov  ax, @data
+	                mov  ds, ax
 
-    ; call TestProc
-                                    
-                    mov ah, 4ch
-                    int 21h
+	                mov  ah, 0             	; set the configuration of the video mode
+	                mov  al, 13h           	; set the video mode 13h
+	                int  10h               	; call the BIOS video interrupt
+
+	; call TestProc
+	; call Brick2
+	                call DrawColumn
+
+	                mov  ah, 4ch
+	                int  21h
 main endp
 
-TestProc PROC far
-    ; mov ah, 0              ; set the configuration of the video mode
-    ; mov al, 13h            ; set the video mode 13h
-    ; int 10h                ; call the BIOS video interrupt
+DrawColumn PROC
+	                mov  di, 0             	; beginning of y points array
+	                mov  cx, bricks_no     	; number of rows
+	                dec  cx
+	DrawColumnLoop: 
+	                push cx
+	                call DrawRow
+	                pop  cx
+	                add  di, 2
+	                loop DrawColumnLoop
 
-    ; mov ah, 0Bh            ; set the config to background color
-    ; mov bh, 00h            ; set background color
-    ; mov bl, 03h            ; color
-    ; int 10h
+	                RET
 
-                    mov cx, x              ; init x coordinate
-                    mov dx, y              ; init y coordinate
 
-    Draw_horizontal:
-                    mov ah, 0Ch            ; set the config to draw a pixel
-                    mov al, 15             ; choose white color
-                    mov bh, 00h            ; page number
-                    int 10h
-                    inc cx
+DrawColumn ENDP
 
-                    mov ax, cx
-                    sub ax, x
-                    cmp ax, squareSize     ; (Y) exit horizontal check
-                    jng Draw_horizontal
-              
-                    mov cx, x              ; reset for next line
-                    inc dx
 
-                    mov ax, dx
-                    sub ax, y
-                    cmp ax, squareSize     ; (Y) exit vertical check
-                    jng Draw_horizontal
-                    RET
-TestProc ENDP
+DrawRow PROC
+	                mov  si, 0             	; beginning of x points array
+	                mov  cx, bricks_no
+
+	DrawRowLoop:    
+	                mov  ax, starting_x[si]
+	                mov  bx, starting_y[di]
+	                mov  x, ax
+	                mov  y, bx
+	                push cx
+	                call DrawBrick
+	                pop  cx
+	                add  si, 2
+	                loop DrawRowLoop
+
+	                RET
+DrawRow ENDP
+
+DrawBrick PROC
+	                mov  cx, x             	; init x coordinate
+	                mov  dx, y             	; init y coordinate
+
+	move_horizontal:
+	                mov  ah, 0Ch           	; set the config to draw a pixel
+	                mov  al, colors[si]
+	                mov  bh, 00h           	; page number
+	                int  10h
+	                inc  cx
+
+	                mov  ax, cx
+	                sub  ax, x
+	                cmp  ax, brick_width   	; (Y) exit horizontal check
+	                jng  move_horizontal
+
+	                mov  cx, x             	; reset for next line
+	                inc  dx
+
+	                mov  ax, dx
+	                sub  ax, y
+	                cmp  ax, brick_height  	; (Y) exit vertical check
+	                jng  move_horizontal
+
+	                RET
+DrawBrick ENDP
 
 end main
