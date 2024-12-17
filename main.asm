@@ -38,7 +38,7 @@ include     macros.inc      ; general macros
 	HorzBall          dw 0
 
 	Paddle_x          dw 50                           	; start x position for paddle
-	Paddle_y          dw 155                          	; start y position for paddle
+	Paddle_y          dw 160                          	; start y position for paddle
 	paddle_x_half     dw 0
 
 	level_paddle_x    dw 30                           	; paddle width - changes according to level chosen
@@ -85,12 +85,12 @@ moveLeft proc
 	                    mov          rectwidth, ax
 	                    mov          rectcolour, 0
 	                    call         DrawPaddle
-	                    cmp          Paddle_x, 30
+	                    cmp          Paddle_x, 17
 	                    jle          endleft
 	                    sub          Paddle_x, 7
 	                    ret
 	endleft:            
-	                    mov          Paddle_x, 20
+	                    mov          Paddle_x, 17
 	                    ret
 moveLeft endp
 

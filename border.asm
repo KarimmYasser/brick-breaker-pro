@@ -44,7 +44,7 @@ DrawLevelBorder proc far
                       mov          rect_y, 0
                       call         DrawRectangle
 
-    ; Draw the outer yellow border
+    ; Draw the outer cyan border
                       mov          rectcolour, 3         ; cyan color
                       mov          rectwidth, 300
                       mov          rectheight, 170
@@ -54,13 +54,11 @@ DrawLevelBorder proc far
 
     ; Draw the black inner game rectangle
                       mov          rectcolour, 0         ; black color
-                      mov          rectwidth, 280
-                      mov          rectheight, 150
-                      mov          rect_x, 19
-                      mov          rect_y, 19
+                      mov          rectwidth, 290
+                      mov          rectheight, 160
+                      mov          rect_x, 15
+                      mov          rect_y, 15
                       call         DrawRectangle
-
-                      call         DrawDivider
 
     ; draw hearts for both players
                       mov          ax, playerOneLives
@@ -71,18 +69,20 @@ DrawLevelBorder proc far
                       mov          ax, playerTwoLives
                       mov          CurrentLives, ax
                       mov          HeartColumn, 79
+                      
                       call         DrawHearts
                        
     ; draw score and level
                       call         DrawBorderStrings
+                      call         DrawDivider
                       ret
 DrawLevelBorder endp
 
 DrawDivider proc
                       mov          rectcolour, 3         ; cyan color
-                      mov          rectwidth, 4
+                      mov          rectwidth, 2
                       mov          rectheight, 170
-                      mov          rect_x, 158           ; centered
+                      mov          rect_x, 159           ; centered
                       mov          rect_y, 9
                       call         DrawRectangle
                       ret
