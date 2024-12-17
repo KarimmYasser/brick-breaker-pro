@@ -79,7 +79,7 @@ DrawLevelBorder proc far
 DrawLevelBorder endp
 
 DrawDivider proc
-                      mov          rectcolour, 3      ; cyan color
+                      mov          rectcolour, 3         ; cyan color
                       mov          rectwidth, 4
                       mov          rectheight, 170
                       mov          rect_x, 158           ; centered

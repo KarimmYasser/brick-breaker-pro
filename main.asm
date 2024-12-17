@@ -37,11 +37,11 @@ include     macros.inc      ; general macros
 	VertBall          dw 0
 	HorzBall          dw 0
 
-	Paddle_x          dw 50
-	Paddle_y          dw 175
+	Paddle_x          dw 50                           	; start x position for paddle
+	Paddle_y          dw 155                          	; start y position for paddle
 	paddle_x_half     dw 0
 
-	level_paddle_x    dw 30
+	level_paddle_x    dw 30                           	; paddle width - changes according to level chosen
 	level_padhalfx    dw 15
 	
 	ScoreCounter      db 0
@@ -85,14 +85,15 @@ moveLeft proc
 	                    mov          rectwidth, ax
 	                    mov          rectcolour, 0
 	                    call         DrawPaddle
-	                    cmp          Paddle_x, 17
+	                    cmp          Paddle_x, 30
 	                    jle          endleft
 	                    sub          Paddle_x, 7
 	                    ret
 	endleft:            
-	                    mov          Paddle_x, 10
+	                    mov          Paddle_x, 20
 	                    ret
 moveLeft endp
+
 moveRight proc
 	                    mov          rectcolour, 0
 	                    mov          ax, level_paddle_x
@@ -105,11 +106,12 @@ moveRight proc
 	                    add          Paddle_x, 7
 	                    ret
 	endright:           
-	                    mov          ax, 155
+	                    mov          ax, 150
 	                    sub          ax, level_paddle_x
 	                    mov          Paddle_x, ax
 	                    ret
 moveRight endp
+
 DrawRectangle PROC
 	
 	                    push         cx
@@ -138,8 +140,6 @@ DrawRectangle PROC
 DrawRectangle ENDP
 
 boarder proc
-	
-	
 	                    mov          rectcolour, 3
 	                    mov          rectwidth, 320
 	                    mov          rectheight, 200
