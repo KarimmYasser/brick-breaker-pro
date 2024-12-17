@@ -11,6 +11,7 @@ public playerOneScore
 public playerTwoScore
 public playerOneLives
 public playerTwoLives
+public Level_Selector
 
 extrn DrawLevelBorder:far
 

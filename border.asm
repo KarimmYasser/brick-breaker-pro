@@ -1,13 +1,4 @@
 ; Declare the external variables and procedures
-DrawHeart MACRO
-              mov al, 3        ;ASCII code of heart to display
-              mov bx, 0        ; page 0,
-              mov bl, 1100b    ; color red
-              mov cx, 1        ; repetition count
-              mov ah, 09h      ; config line
-              int 10h          ; for writing char at cursor position
-ENDM
-
 public DrawLevelBorder
 
 extrn rectcolour:byte
@@ -20,6 +11,7 @@ extrn playerOneScore: word
 extrn playerTwoScore: word
 extrn playerOneLives: word
 extrn playerTwoLives: word
+extrn Level_Selector: word
 
 extrn DrawRectangle:far
 
@@ -29,9 +21,11 @@ extrn DrawRectangle:far
 .data
     CurrentLives dw 0
     HeartColumn  db 0
-    buffer db 100 dup('$')
+    buffer       db 100 dup('$')
+    ScoreName    db "Score: $"
+    LevelName    db "Level: $"
 .code
-                      include      macros.inc              ; general macros
+                      include      macros.inc            ; general macros
 
 Main proc far
                       mov          ax, @data
@@ -43,25 +37,25 @@ Main endp
 
 DrawLevelBorder proc far
     ; Draws the outer black border
-                      mov          rectcolour, 0           ; black color
-                      mov          rectwidth, 320          ; whole width
-                      mov          rectheight, 200         ; whole height
+                      mov          rectcolour, 0         ; black color
+                      mov          rectwidth, 320        ; whole width
+                      mov          rectheight, 200       ; whole height
                       mov          rect_x, 0
                       mov          rect_y, 0
                       call         DrawRectangle
 
     ; Draw the outer yellow border
-                      mov          rectcolour, 14          ; yellow color
+                      mov          rectcolour, 14        ; yellow color
                       mov          rectwidth, 300
-                      mov          rectheight, 180
+                      mov          rectheight, 170
                       mov          rect_x, 9
                       mov          rect_y, 9
                       call         DrawRectangle
 
     ; Draw the black inner game rectangle
-                      mov          rectcolour, 0           ; black color
+                      mov          rectcolour, 0         ; black color
                       mov          rectwidth, 280
-                      mov          rectheight, 160
+                      mov          rectheight, 150
                       mov          rect_x, 19
                       mov          rect_y, 19
                       call         DrawRectangle
@@ -79,14 +73,16 @@ DrawLevelBorder proc far
                       mov          HeartColumn, 79
                       call         DrawHearts
                        
+    ; draw score and level
+                      call         DrawBorderStrings
                       ret
 DrawLevelBorder endp
 
 DrawDivider proc
-                      mov          rectcolour, 14          ; yellow color
+                      mov          rectcolour, 14        ; yellow color
                       mov          rectwidth, 4
-                      mov          rectheight, 180
-                      mov          rect_x, 158             ; centered
+                      mov          rectheight, 170
+                      mov          rect_x, 158           ; centered
                       mov          rect_y, 9
                       call         DrawRectangle
                       ret
@@ -97,7 +93,7 @@ DrawHearts PROC
     ; Check if CurrentLives > 2 (for third heart)
                       mov          ax, CurrentLives
                       cmp          ax, 3
-                      jb           skip_third_heart        ; If CurrentLives < 3, skip drawing the third heart
+                      jb           skip_third_heart      ; If CurrentLives < 3, skip drawing the third heart
 
     draw_third_heart: 
                       SetCursorPos 4 HeartColumn
@@ -108,7 +104,7 @@ DrawHearts PROC
     ; Check if CurrentLives > 1 (for second heart)
                       mov          ax, CurrentLives
                       cmp          ax, 2
-                      jb           skip_second_heart       ; If CurrentLives < 2, skip drawing the second heart
+                      jb           skip_second_heart     ; If CurrentLives < 2, skip drawing the second heart
 
     draw_second_heart:
                       SetCursorPos 3 HeartColumn
@@ -118,7 +114,7 @@ DrawHearts PROC
     ; Check if CurrentLives > 0 (for first heart)
                       mov          ax, CurrentLives
                       cmp          ax, 1
-                      jb           skip_first_heart        ; If CurrentLives < 1, skip drawing the first heart
+                      jb           skip_first_heart      ; If CurrentLives < 1, skip drawing the first heart
 
     draw_first_heart: 
                       SetCursorPos 2 HeartColumn
@@ -129,7 +125,33 @@ DrawHearts PROC
 DrawHearts ENDP
 
 DrawBorderStrings proc
+    ; Save the registers
+                      push         ax
+                      push         bx
+                      push         cx
+                      push         dx
+                      push         bp
+                      push         si
+                      push         di
 
+                      SetCursorPos 23 2
+                      PrintString  ScoreName
+
+                      SetCursorPos 24 2
+                      PrintString  LevelName
+
+                      SetCursorPos 23 20
+                      PrintString  ScoreName
+                      SetCursorPos 24 20
+                      PrintString  LevelName
+
+                      pop          di
+                      pop          si
+                      pop          bp
+                      pop          dx
+                      pop          cx
+                      pop          bx
+                      pop          ax
+                      ret
 DrawBorderStrings ENDP
-
 end Main
