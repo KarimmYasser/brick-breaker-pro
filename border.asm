@@ -45,7 +45,7 @@ DrawLevelBorder proc far
                       call         DrawRectangle
 
     ; Draw the outer yellow border
-                      mov          rectcolour, 14        ; yellow color
+                      mov          rectcolour, 3         ; cyan color
                       mov          rectwidth, 300
                       mov          rectheight, 170
                       mov          rect_x, 9
@@ -79,7 +79,7 @@ DrawLevelBorder proc far
 DrawLevelBorder endp
 
 DrawDivider proc
-                      mov          rectcolour, 14        ; yellow color
+                      mov          rectcolour, 3      ; cyan color
                       mov          rectwidth, 4
                       mov          rectheight, 170
                       mov          rect_x, 158           ; centered
