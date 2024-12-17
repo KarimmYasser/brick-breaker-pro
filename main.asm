@@ -14,6 +14,7 @@ public playerTwoLives
 public Level_Selector
 
 extrn DrawLevelBorder:far
+extrn TestProc:far
 
 .MODEL SMALL
 .STACK 100h
@@ -511,6 +512,8 @@ DrawScreen PROC
 	;call         CheckBox
 	                    mov          rectcolour, 0       	;draw ball black
 	                    call         drawball
+	                    call         TestProc
+
 	;call         BallMovement
 	;call         BallWallCollision
 	;call         BallBoxCollision
@@ -554,6 +557,7 @@ DrawScreen PROC
 	NoBoxS:             
 	                    mov          rectcolour, 15
 	                    call         drawball
+
 	;call         DrawBox
 	;call         DrawBoarder
 	                    ret
@@ -591,6 +595,7 @@ Main proc far
 	;;GAME INNER LOOP
 	gameLoop:           
 	                    call         DrawScreen
+
 
 	                    mov          ah, 0Ch
 	                    int          21h
