@@ -18,8 +18,8 @@ include     macros.inc      ; general macros
 	ball_y            dw  100
 	ball_size         dw  6
 
-	ball_x_velocity   dw  1                            	; temp velocities for now change later
-	ball_y_velocity   dw  1
+	VertBall   dw  0                            	; the direction of the ball in the vertical direction
+	HorzBall   dw  0								; the direction of the ball in the horizontal direction
 	
 	;-------------- For Chat
 	var               db  ?
@@ -32,9 +32,6 @@ include     macros.inc      ; general macros
 	buffer            db  100 dup('$')
 	ScoreName         db  "Score: $"
 	LevelName         db  "Level: $"
-
-	VertBall          dw  0
-	HorzBall          dw  0
 
 	Paddle_x          dw  50                           	; start x position for paddle
 	Paddle_y          dw  160                          	; start y position for paddle
@@ -50,7 +47,7 @@ include     macros.inc      ; general macros
 	Level_Selector    dw  1
 
 	bool_boxs         dw  1
-	Bool_BoxExist     dw  1
+	BoxesExist     	  dw  1
 	Bool_Box          dw  1, 1, 1, 1, 1, 1, 1, 1
 	NumBoolBox        dw  8
 
@@ -70,7 +67,7 @@ BoxCreator PROC
 	                       mov          cx, NumBoolBox
 	                       mov          si, offset Bool_Box
 	
-	                       mov          Bool_BoxExist, 1
+	                       mov          BoxesExist, 1
 	                       mov          ax, Level_Selector
 	
 	loopBC:                
@@ -289,15 +286,68 @@ DrawPaddle PROC
 					   
 	                       ret
 DrawPaddle ENDP
+MoveBall proc
+	                       push         ax
+	                       push         bx
+	                       push         cx
+	                       push         dx
+	                       mov          ax, ball_x
+	                       mov          bx, ball_y
+	                       mov          cx, VertBall
+	                       mov          dx, HorzBall
 
+	                       cmp          dx, 1
+	                       je           MoveRightBall
+
+	MoveLeftBall:              
+	                       cmp          ax, 21
+						   jl			ExactLeft
+	                       sub          ax, 5
+	                       mov          ball_x, ax
+						   jmp			VertCompare
+	ExactLeft:
+						   mov			ax, 16
+						   mov			ball_x, ax
+						   jmp			VertCompare
+	MoveRightBall:             
+						   cmp          ax, 148
+						   jg			ExactRight
+	                       add          ax, 4
+	                       mov          ball_x, ax
+						   jmp			VertCompare
+	ExactRight:
+						   mov			ax, 152
+						   mov			ball_x, ax
+	VertCompare:
+						   cmp			cx, 0
+						   je			MoveDownBall
+	MoveUpBall:
+						   cmp		    bx, 21
+						   jl			ExactUp
+	                       sub          bx, 5
+	                       mov          ball_y, bx
+						   jmp			EndMoveBall
+	ExactUp:
+						   mov			bx, 16
+						   mov			ball_y, bx
+						   jmp			EndMoveBall
+	MoveDownBall:	   
+						   add          bx, 5
+	                       mov          ball_y, bx
+	EndMoveBall:
+	                       pop          dx
+	                       pop          cx
+	                       pop          bx
+	                       pop          ax
+	                       ret
+MoveBall endp
 BallPaddleCollision proc
 	                       push         CX
 	                       push         DX
 
 	                       mov          ax, Paddle_x
-	                       sub          ax, 5
 	                       mov          bx, Paddle_y
-	                       sub          bx, 10
+						   sub			bx, 10
 
 	                       cmp          ball_x, ax
 	                       jl           NoCollision
@@ -309,35 +359,37 @@ BallPaddleCollision proc
 	                       mov          cx, paddle_x_half
 
 	                       cmp          ball_x, ax
-	                       jg           skipFirstHalf
-	                       cmp          ball_x, cx
-	                       jl           skipFirstHalf
-	                       cmp          ball_y, bx
-	                       jl           skipFirstHalf
-
-	                       add          bx, 10
-
-	                       cmp          ball_y, bx
-	                       jg           skipFirstHalf
-
-	                       mov          VertBall, 1
-	                       mov          HorzBall, 0
-
-	skipFirstHalf:         
-	                       cmp          ball_x, ax
 	                       jg           NoCollision
 	                       cmp          ball_x, cx
-	                       jg           NoCollision
+	                       jl           skipFirstHalf
 	                       cmp          ball_y, bx
 	                       jl           NoCollision
 
 	                       add          bx, 10
 
 	                       cmp          ball_y, bx
-	                       jl           NoCollision
+	                       jg           NoCollision
 
 	                       mov          VertBall, 1
 	                       mov          HorzBall, 1
+						   jmp			NoCollision
+
+	skipFirstHalf:         
+	                       cmp          ball_x, cx
+	                       jg           NoCollision
+						   sub			cx, level_padhalfx
+						   cmp			ball_x, cx
+						   jl			NoCollision
+	                       cmp          ball_y, bx
+	                       jl           NoCollision
+
+	                       add          bx, 16
+
+	                       cmp          ball_y, bx
+	                       jg           NoCollision
+
+	                       mov          VertBall, 1
+	                       mov          HorzBall, 0
 
 	NoCollision:           
 	                       pop          DX
@@ -674,8 +726,8 @@ DrawScreen PROC
 	;call         CheckBox
 	                       mov          rectcolour, 0        	;draw ball black
 	                       call         drawball
-	;call         BallMovement
-	;call         CheckBallWallCollision
+						   call         MoveBall
+						   call         CheckBallWallCollision
 	;call         BallBoxCollision
 	                       cmp          Level_Selector, 1
 	                       je           level1
@@ -726,30 +778,30 @@ CheckBallWallCollision proc
 
 	; Check collision with left boundary
 	check_left_bound:      
-	                       cmp          ball_x, 15           	; game border starts at 15
-	                       jge          check_right_bound    	; if greater than continue checking on the rest of boundaries
-	                       neg          ball_x_velocity      	; reverse the direction to move right
+	                       cmp          ball_x, 17           	; game border starts at 15
+	                       jg          check_right_bound    	; if greater than continue checking on the rest of boundaries
+	                       mov          HorzBall,1    	; reverse the direction to move right
 	
 	; Check collision with right boundary
 	check_right_bound:     
-	                       mov          ax, 159              	; divider line is the right boundary for game border
+	                       mov          ax, 158              	; divider line is the right boundary for game border
 	                       sub          ax, ball_size
 	                       cmp          ball_x, ax
-	                       jle          check_upper_bound
-	                       neg          ball_x_velocity      	; reverse the direction to move left
+	                       jl          check_upper_bound
+	                       mov          HorzBall,0    	; reverse the direction to move left
 
 	; Check collision with top boundary
 	check_upper_bound:     
-	                       cmp          ball_y, 15           	; game border starts at 15
-	                       jge          check_lower_bound
-	                       neg          ball_y_velocity      	; reverse direction to move down
+	                       cmp          ball_y, 16           	; game border starts at 15
+	                       jg           check_lower_bound
+	                       mov          VertBall,0    	; reverse direction to move down
 	; Check collision with bottom boundary
 	check_lower_bound:     
-	                       mov          ax, 175              	; game border lower bound height
+	                       mov          ax, 168              	; game border lower bound height - ball size
 	                       sub          ax, ball_size
 	                       cmp          ball_y, ax
-	                       jle          end_check
-	                       neg          ball_y_velocity      	; reverse direction to move up
+	                       jl          end_check
+	                       mov          VertBall,1    	; reverse direction to move up
 	end_check:             
 	                       ret
 	
