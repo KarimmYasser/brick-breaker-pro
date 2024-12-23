@@ -15,7 +15,7 @@
         "-c",
         "TASM.EXE *.asm;",
         "-c",
-        "LINK.EXE main.obj border.obj test.obj;",
+        "LINK.EXE main.obj border.obj;",
         "-c",
         "main.exe",
         "-c",
@@ -45,7 +45,7 @@
         "-c",
         "main.exe",
         "-c",
-        // "exit"
+        "exit"
       ],
       "group": {
         "kind": "build",

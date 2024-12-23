@@ -13,8 +13,15 @@ public playerOneLives
 public playerTwoLives
 public Level_Selector
 
+; for drawing bricks
+; public bricks_level_1
+; public bricks_level_2
+; public bricks_level_3
+; public Level_Selector
+
+
 extrn DrawLevelBorder:far
-extrn TestProc:far
+extrn DrawGrid:far
 
 .MODEL SMALL
 .STACK 100h
@@ -38,13 +45,19 @@ include     macros.inc      ; general macros
 	VertBall          dw 0
 	HorzBall          dw 0
 
-	Paddle_x          dw 50                           	; start x position for paddle
-	Paddle_y          dw 160                          	; start y position for paddle
+	Paddle_x          dw 50                                                         	; start x position for paddle
+	Paddle_y          dw 160                                                        	; start y position for paddle
 	paddle_x_half     dw 0
 
-	level_paddle_x    dw 30                           	; paddle width - changes according to level chosen
+	level_paddle_x    dw 30                                                         	; paddle width - changes according to level chosen
 	level_padhalfx    dw 15
-	
+
+	; decrement every time the brick gets hit, draw color is chosen based on the array's content of the corresponding index
+	; 1, 2, 3 -> each get a color, 0 -> drawn on black so we don't have to re-draw the screen constantly like
+	bricks_level_1    dw 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+	bricks_level_2    dw 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2,
+	bricks_level_3    dw 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+
 	ScoreCounter      db 0
 	CurrentLives      dw 3
 	Level_Selector    dw 1
@@ -255,8 +268,6 @@ drawball proc
 drawball endp
 
 DrawPaddle PROC
-	;mov rectcolour, 15
-	;mov rectwidth, 50
 	                    mov          rectheight, 10
 					   
 	                    mov          si, Paddle_x
@@ -432,7 +443,7 @@ level_select proc
 	                    int          21h
 	                    SetCursorPos 4, 7
 
-	                    lea          dx,levelnum_string
+	                    lea          dx, levelnum_string
 	                    mov          ah,09h
 	                    int          21h
 
@@ -441,7 +452,7 @@ level_select proc
 
 	                    SetCursorPos 12, 6
 
-	                    lea          dx,level_string
+	                    lea          dx, level_string
 	                    mov          ah,09h
 	                    int          21h
 
@@ -450,7 +461,7 @@ level_select proc
 
 	                    SetCursorPos 14, 7
 
-	                    lea          dx,levelnum_string
+	                    lea          dx, levelnum_string
 	                    mov          ah,09h
 	                    int          21h
 
@@ -480,7 +491,7 @@ level_select proc
 	                    mov          ah, 1
 	                    int          16h
 	                    mov          bx,ax
-	                    jz           again_and_again
+	                    jz           again_and_again     	; keep waiting for an input for the level selector
 	                    cmp          bl, '1'
 	                    je           set_level_1
 	                    cmp          bl, '2'
@@ -512,7 +523,7 @@ DrawScreen PROC
 	;call         CheckBox
 	                    mov          rectcolour, 0       	;draw ball black
 	                    call         drawball
-	                    call         TestProc
+	                    call         DrawGrid
 
 	;call         BallMovement
 	;call         BallWallCollision
