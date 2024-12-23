@@ -32,11 +32,11 @@ include     macros.inc      ; general macros
 	VertBall          dw  0
 	HorzBall          dw  0
 
-	Paddle_x          dw  50                           	; start x position for paddle
-	Paddle_y          dw  160                          	; start y position for paddle
+	Paddle_x          dw  50                                                                                                	; start x position for paddle
+	Paddle_y          dw  160                                                                                               	; start y position for paddle
 	paddle_x_half     dw  0
 
-	level_paddle_x    dw  30                           	; paddle width - changes according to level chosen
+	level_paddle_x    dw  30                                                                                                	; paddle width - changes according to level chosen
 	level_padhalfx    dw  15
 
 	paddleSpeed       equ 7
@@ -45,10 +45,6 @@ include     macros.inc      ; general macros
 	CurrentLives      dw  3
 	Level_Selector    dw  1
 
-	bool_boxs         dw  1
-	Bool_BoxExist     dw  1
-	Bool_Box          dw  1, 1, 1, 1, 1, 1, 1, 1
-	NumBoolBox        dw  8
 
 	start_menu_option db  1
 	string_start_game db  'START GAME$'
@@ -59,11 +55,27 @@ include     macros.inc      ; general macros
 	three             db  '3)$'
 	levelnum_string   db  '(1)        (2)       (3)$'
 	level_string      db  'LEVEL      LEVEL     LEVEL$'
+
+	;----------------------- bricks data
+	x                 dw  11h                                                                                               	; brick x coordinate
+	y                 dw  10h                                                                                               	; brick y coordinate
+	brick_width       dw  18h
+	brick_height      dw  08h
+
+	starting_x_left   dw  11h, 2Ch, 47h, 62h, 7Dh, 11h, 2Ch, 47h, 62h, 7Dh, 11h, 2Ch, 47h, 62h, 7Dh, 11h, 2Ch, 47h, 62h, 7Dh	; 20 bricks
+	starting_y        dw  10h, 10h, 10h, 10h, 10h, 1Bh, 1Bh, 1Bh, 1Bh, 1Bh, 26h, 26h, 26h, 26h, 26h, 31h, 31h, 31h, 31h, 31h	; 20 bricks
 	
+	bricks_no         dw  20
+	color             db  50h                                                                                               	; init value
+	
+	bool_boxs         dw  1
+	Bool_BoxExist     dw  1
+	Bool_Box          dw  20 dup(1)                                                                                         	; init value to be changed when the level is chosen
 .CODE
 
+	; init the bricks array with the value of the level chosen
 BoxCreator PROC
-	                    mov          cx, NumBoolBox
+	                    mov          cx, bricks_no
 	                    mov          si, offset Bool_Box
 	
 	                    mov          Bool_BoxExist, 1
@@ -85,12 +97,12 @@ moveLeft proc
 	                    mov          rectcolour, 0
 	                    call         WAIT_FOR_VSYNC
 	                    call         DrawPaddle
-	                    cmp          Paddle_x, 22            	; left border boundary + speed
+	                    cmp          Paddle_x, 22           	; left border boundary + speed
 	                    jle          endleft
 	                    sub          Paddle_x, paddleSpeed
 	                    ret
 	endleft:            
-	                    mov          Paddle_x, 15            	; left border boundary
+	                    mov          Paddle_x, 15           	; left border boundary
 	                    ret
 moveLeft endp
 
@@ -102,12 +114,12 @@ moveRight proc
 	                    call         DrawPaddle
 	                    mov          ax, Paddle_x
 	                    add          ax, level_paddle_x
-	                    cmp          ax, 151                 	; right border boundary - speed
+	                    cmp          ax, 151                	; right border boundary - speed
 	                    jge          endright
 	                    add          Paddle_x, paddleSpeed
 	                    ret
 	endright:           
-	                    mov          ax, 159                 	; right border boundary
+	                    mov          ax, 159                	; right border boundary
 	                    sub          ax, level_paddle_x
 	                    mov          Paddle_x, ax
 	                    ret
@@ -116,14 +128,14 @@ moveRight endp
 WAIT_FOR_VSYNC PROC NEAR
 	                    push         ax
 	                    push         dx
-	                    mov          dx, 3DAh                	; VGA status port
+	                    mov          dx, 3DAh               	; VGA status port
 	vsync_wait1:        
 	                    in           al, dx
-	                    test         al, 8                   	; Check vertical retrace
-	                    jnz          vsync_wait1             	; Wait if already in retrace
+	                    test         al, 8                  	; Check vertical retrace
+	                    jnz          vsync_wait1            	; Wait if already in retrace
 	vsync_wait2:        
 	                    in           al, dx
-	                    test         al, 8                   	; Wait for vertical retrace
+	                    test         al, 8                  	; Wait for vertical retrace
 	                    jz           vsync_wait2
 	                    pop          dx
 	                    pop          ax
@@ -136,7 +148,7 @@ DrawRectangle PROC
 	
 	                    mov          Al, rectcolour
 	                    mov          CX, rect_x
-	                    dec          cx                      	; 0 based
+	                    dec          cx                     	; 0 based
 	                    add          CX, rectwidth
 	                    mov          DX, rect_y
 	                    add          DX, rectheight
@@ -166,8 +178,8 @@ boarder proc
 	                    call         DrawRectangle
 	
 	                    mov          rectcolour, 0
-	                    mov          rectwidth, 300          	; 320 - 10 - 10
-	                    mov          rectheight, 180         	; 200 - 10 - 10
+	                    mov          rectwidth, 300         	; 320 - 10 - 10
+	                    mov          rectheight, 180        	; 200 - 10 - 10
 	                    mov          rect_x, 10
 	                    mov          rect_y, 10
 	                    call         DrawRectangle
@@ -272,8 +284,6 @@ drawball proc
 drawball endp
 
 DrawPaddle PROC
-	;mov rectcolour, 15
-	;mov rectwidth, 50
 	                    mov          rectheight, 10
 					   
 	                    mov          si, Paddle_x
@@ -357,23 +367,23 @@ draw_start_menu endp
 start_menu proc
 	ToMenu:             
 	                    mov          ah, 0h
-	                    mov          al, 13h                 	;320x200
+	                    mov          al, 13h                	;320x200
 	                    int          10h
 
 	                    call         boarder
 	                    call         draw_start_menu
-	                    mov          rectcolour,15           	;ball colour
+	                    mov          rectcolour,15          	;ball colour
 	                    mov          start_menu_option, 1
 	                    mov          ball_x, 84
 	                    mov          ball_y, 48
-	                    call         drawball                	;draw on selected option
+	                    call         drawball               	;draw on selected option
 	                    xor          ax, ax
 	                    xor          bx, bx
 	                    xor          cx, cx
 	                    xor          dx, dx
 	kbloop:             
 	                    mov          ah, 0Ch
-	                    int          21h                     	;clear keyboard buffer
+	                    int          21h                    	;clear keyboard buffer
 	                    call         delay
 
 	                    mov          ah, 1
@@ -407,7 +417,7 @@ start_menu proc
 	weexit:             jmp          exit
 	;-------------------------------------------
 	moveup:             
-	                    mov          rectcolour, 0           	; erase ball
+	                    mov          rectcolour, 0          	; erase ball
 	                    call         drawball
 	                    dec          start_menu_option
 	                    cmp          start_menu_option, 0
@@ -416,7 +426,7 @@ start_menu proc
 	                    jmp          calcOption
 
 	movedown:           
-	                    mov          rectcolour, 0           	; erase ball
+	                    mov          rectcolour, 0          	; erase ball
 	                    call         drawball
 	                    inc          start_menu_option
 	                    cmp          start_menu_option, 4
@@ -455,21 +465,21 @@ start_menu proc
 	exit:               
 	                    SetCursorPos 18, 1
 	                    mov          ah, 4Ch
-	                    int          21h                     	;exit
+	                    int          21h                    	;exit
 	stgm:               
 	                    ret
 start_menu endp
 DrawLevelBorder proc far
 	; Draws the outer black border
-	                    mov          rectcolour, 0           	; black color
-	                    mov          rectwidth, 320          	; whole width
-	                    mov          rectheight, 200         	; whole height
+	                    mov          rectcolour, 0          	; black color
+	                    mov          rectwidth, 320         	; whole width
+	                    mov          rectheight, 200        	; whole height
 	                    mov          rect_x, 0
 	                    mov          rect_y, 0
 	                    call         DrawRectangle
 
 	; Draw the outer cyan border
-	                    mov          rectcolour, 3           	; cyan color
+	                    mov          rectcolour, 3          	; cyan color
 	                    mov          rectwidth, 300
 	                    mov          rectheight, 170
 	                    mov          rect_x, 10
@@ -477,7 +487,7 @@ DrawLevelBorder proc far
 	                    call         DrawRectangle
 
 	; Draw the black inner game rectangle
-	                    mov          rectcolour, 0           	; black color
+	                    mov          rectcolour, 0          	; black color
 	                    mov          rectwidth, 290
 	                    mov          rectheight, 160
 	                    mov          rect_x, 15
@@ -503,10 +513,10 @@ DrawLevelBorder proc far
 DrawLevelBorder endp
 
 DrawDivider proc
-	                    mov          rectcolour, 3           	; cyan color
+	                    mov          rectcolour, 3          	; cyan color
 	                    mov          rectwidth, 2
 	                    mov          rectheight, 170
-	                    mov          rect_x, 159             	; centered
+	                    mov          rect_x, 159            	; centered
 	                    mov          rect_y, 10
 	                    call         DrawRectangle
 	                    ret
@@ -515,7 +525,7 @@ DrawHearts PROC
 	; Check if CurrentLives > 2 (for third heart)
 	                    mov          ax, CurrentLives
 	                    cmp          ax, 3
-	                    jb           skip_third_heart        	; If CurrentLives < 3, skip drawing the third heart
+	                    jb           skip_third_heart       	; If CurrentLives < 3, skip drawing the third heart
 
 	draw_third_heart:   
 	                    SetCursorPos 4 HeartColumn
@@ -526,7 +536,7 @@ DrawHearts PROC
 	; Check if CurrentLives > 1 (for second heart)
 	                    mov          ax, CurrentLives
 	                    cmp          ax, 2
-	                    jb           skip_second_heart       	; If CurrentLives < 2, skip drawing the second heart
+	                    jb           skip_second_heart      	; If CurrentLives < 2, skip drawing the second heart
 
 	draw_second_heart:  
 	                    SetCursorPos 3 HeartColumn
@@ -536,7 +546,7 @@ DrawHearts PROC
 	; Check if CurrentLives > 0 (for first heart)
 	                    mov          ax, CurrentLives
 	                    cmp          ax, 1
-	                    jb           skip_first_heart        	; If CurrentLives < 1, skip drawing the first heart
+	                    jb           skip_first_heart       	; If CurrentLives < 1, skip drawing the first heart
 
 	draw_first_heart:   
 	                    SetCursorPos 2 HeartColumn
@@ -576,13 +586,79 @@ DrawBorderStrings proc
 	                    ret
 DrawBorderStrings ENDP
 
+DrawAllBricks PROC
+	                    mov          di, 0
+	                    mov          cx, bricks_no
+	                    mov          si, offset Bool_Box
+	
+	drawLoop:           
+	                    mov          ax, [si]
+	                    cmp          ax, 0
+	                    mov          color, 00h
+
+	                    cmp          ax, 1
+	                    mov          color, 50h
+	                    je           draw
+
+	                    cmp          ax, 2
+	                    mov          color, 54h
+	                    je           draw
+
+	                    cmp          ax, 3
+	                    mov          color, 56h
+	                    je           draw
+
+	draw:               
+	                    mov          ax, starting_x_left[di]
+	                    mov          x, ax
+	                    mov          ax, starting_y[di]
+	                    mov          y, ax
+	                    push         cx
+	                    call         DrawBrick
+	                    pop          cx
+
+	                    add          si, 2
+	                    add          di, 2
+	                    loop         drawLoop
+
+	                    RET
+DrawAllBricks ENDP
+
+	; needs in 'x' the start x coordinate and in 'y' the start y coordinate and in 'color' the color of the brick
+DrawBrick PROC
+	                    mov          cx, x                  	; init x coordinate
+	                    mov          dx, y                  	; init y coordinate
+
+	move_horizontal:    
+	                    mov          ah, 0Ch                	; set the config to draw a pixel
+	                    mov          al, color
+	                    mov          bh, 00h                	; page number
+	                    int          10h
+	                    inc          cx
+
+	                    mov          ax, cx
+	                    sub          ax, x
+	                    cmp          ax, brick_width        	; (Y) exit horizontal check
+	                    jng          move_horizontal
+
+	                    mov          cx, x                  	; reset for next line
+	                    inc          dx
+
+	                    mov          ax, dx
+	                    sub          ax, y
+	                    cmp          ax, brick_height       	; (Y) exit vertical check
+	                    jng          move_horizontal
+
+	                    RET
+DrawBrick ENDP
+
 level_select proc
 	                    mov          ah, 0
-	                    mov          al, 13h                 	;320x200
+	                    mov          al, 13h                	;320x200
 	                    int          10h
 	                    call         boarder
 
-	                    mov          AH, 0Ch                 	; Clear Buffer
+	                    mov          AH, 0Ch                	; Clear Buffer
 	                    int          21h
 	                    SetCursorPos 4, 7
 
@@ -590,7 +666,7 @@ level_select proc
 	                    mov          ah,09h
 	                    int          21h
 
-	                    mov          AH, 0Ch                 	; Clear Buffer
+	                    mov          AH, 0Ch                	; Clear Buffer
 	                    int          21h
 
 	                    SetCursorPos 12, 6
@@ -599,7 +675,7 @@ level_select proc
 	                    mov          ah,09h
 	                    int          21h
 
-	                    mov          AH, 0Ch                 	;Clear Buffer
+	                    mov          AH, 0Ch                	;Clear Buffer
 	                    int          21h
 
 	                    SetCursorPos 14, 7
@@ -608,7 +684,7 @@ level_select proc
 	                    mov          ah,09h
 	                    int          21h
 
-	                    mov          AH, 0Ch                 	;Clear Buffer
+	                    mov          AH, 0Ch                	;Clear Buffer
 	                    int          21h
 
 
@@ -628,7 +704,7 @@ level_select proc
 	                    mov          rect_x,217
 	                    call         DrawRectangle
 	again_and_again:    
-	                    mov          AH, 0Ch                 	;Clear Buffer
+	                    mov          AH, 0Ch                	;Clear Buffer
 	                    int          21h
 	                    call         delay
 	                    mov          ah, 1
@@ -664,8 +740,9 @@ level_select endp
 	gostartmenu:        jmp          startmenu
 DrawScreen PROC
 	;call         CheckBox
-	                    mov          rectcolour, 0           	;draw ball black
+	                    mov          rectcolour, 0          	;draw ball black
 	                    call         drawball
+	                    call         DrawAllBricks
 	;call         BallMovement
 	;call         BallWallCollision
 	;call         BallBoxCollision
@@ -732,14 +809,14 @@ Main proc far
 	                    mov          playerTwoScore, 0
 
 	                    mov          bool_boxs, 1
-	                    call         BoxCreator              	;intialize the boxs based on the level
+	                    call         BoxCreator             	;intialize the boxs based on the level
 	
 	;;CALL START MENU
 	startmenu:          
 	                    call         start_menu
 	;;CALL LEVEL SELECT
 	                    call         level_select
-	                    call         BoxCreator              	;intialize the boxs based on the level
+	                    call         BoxCreator             	;intialize the boxs based on the level
 	;;START GAME
 	startgame:          
 	;    call         gameBoarder
@@ -787,6 +864,6 @@ Main proc far
 	;;QUIT GAME
 	                    SetCursorPos 18, 1
 	                    mov          ah, 4Ch
-	                    int          21h                     	;exit
+	                    int          21h                    	;exit
 Main endp
 END Main
