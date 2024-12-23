@@ -71,7 +71,7 @@ include     macros.inc      ; general macros
 	colors            db  59h, 56h, 50h                                                                                     	; init value
 	
 	bool_boxs         dw  1
-	Bool_BoxExist     dw  1
+	BoxesExist        dw  1
 	Bool_Box          dw  20 dup(1)
 	
 .CODE
@@ -802,6 +802,7 @@ DrawScreen PROC
 	;call         CheckBox
 	                       mov          rectcolour, 0          	;draw ball black
 	                       call         drawball
+	                       call         DrawAllBricks
 	                       call         MoveBall
 	                       call         CheckBallWallCollision
 	;call         BallBoxCollision
