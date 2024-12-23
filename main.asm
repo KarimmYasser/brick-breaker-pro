@@ -18,8 +18,8 @@ include     macros.inc      ; general macros
 	ball_y            dw  100
 	ball_size         dw  6
 
-	VertBall   dw  0                            	; the direction of the ball in the vertical direction
-	HorzBall   dw  0								; the direction of the ball in the horizontal direction
+	VertBall          dw  0                            	; the direction of the ball in the vertical direction
+	HorzBall          dw  0                            	; the direction of the ball in the horizontal direction
 	
 	;-------------- For Chat
 	var               db  ?
@@ -47,7 +47,7 @@ include     macros.inc      ; general macros
 	Level_Selector    dw  1
 
 	bool_boxs         dw  1
-	BoxesExist     	  dw  1
+	BoxesExist        dw  1
 	Bool_Box          dw  1, 1, 1, 1, 1, 1, 1, 1
 	NumBoolBox        dw  8
 
@@ -86,12 +86,12 @@ moveLeft proc
 	                       mov          rectcolour, 0
 	                       call         WAIT_FOR_VSYNC
 	                       call         DrawPaddle
-	                       cmp          Paddle_x, 22         	; left border boundary + speed
+	                       cmp          Paddle_x, 22          	; left border boundary + speed
 	                       jle          endleft
 	                       sub          Paddle_x, paddleSpeed
 	                       ret
 	endleft:               
-	                       mov          Paddle_x, 15         	; left border boundary
+	                       mov          Paddle_x, 15          	; left border boundary
 	                       ret
 moveLeft endp
 
@@ -103,12 +103,12 @@ moveRight proc
 	                       call         DrawPaddle
 	                       mov          ax, Paddle_x
 	                       add          ax, level_paddle_x
-	                       cmp          ax, 151              	; right border boundary - speed
+	                       cmp          ax, 151               	; right border boundary - speed
 	                       jge          endright
 	                       add          Paddle_x, paddleSpeed
 	                       ret
 	endright:              
-	                       mov          ax, 159              	; right border boundary
+	                       mov          ax, 159               	; right border boundary
 	                       sub          ax, level_paddle_x
 	                       mov          Paddle_x, ax
 	                       ret
@@ -117,14 +117,14 @@ moveRight endp
 WAIT_FOR_VSYNC PROC NEAR
 	                       push         ax
 	                       push         dx
-	                       mov          dx, 3DAh             	; VGA status port
+	                       mov          dx, 3DAh              	; VGA status port
 	vsync_wait1:           
 	                       in           al, dx
-	                       test         al, 8                	; Check vertical retrace
-	                       jnz          vsync_wait1          	; Wait if already in retrace
+	                       test         al, 8                 	; Check vertical retrace
+	                       jnz          vsync_wait1           	; Wait if already in retrace
 	vsync_wait2:           
 	                       in           al, dx
-	                       test         al, 8                	; Wait for vertical retrace
+	                       test         al, 8                 	; Wait for vertical retrace
 	                       jz           vsync_wait2
 	                       pop          dx
 	                       pop          ax
@@ -137,7 +137,7 @@ DrawRectangle PROC
 	
 	                       mov          Al, rectcolour
 	                       mov          CX, rect_x
-	                       dec          cx                   	; 0 based
+	                       dec          cx                    	; 0 based
 	                       add          CX, rectwidth
 	                       mov          DX, rect_y
 	                       add          DX, rectheight
@@ -167,8 +167,8 @@ boarder proc
 	                       call         DrawRectangle
 	
 	                       mov          rectcolour, 0
-	                       mov          rectwidth, 300       	; 320 - 10 - 10
-	                       mov          rectheight, 180      	; 200 - 10 - 10
+	                       mov          rectwidth, 300        	; 320 - 10 - 10
+	                       mov          rectheight, 180       	; 200 - 10 - 10
 	                       mov          rect_x, 10
 	                       mov          rect_y, 10
 	                       call         DrawRectangle
@@ -299,42 +299,42 @@ MoveBall proc
 	                       cmp          dx, 1
 	                       je           MoveRightBall
 
-	MoveLeftBall:              
+	MoveLeftBall:          
 	                       cmp          ax, 21
-						   jl			ExactLeft
+	                       jl           ExactLeft
 	                       sub          ax, 5
 	                       mov          ball_x, ax
-						   jmp			VertCompare
-	ExactLeft:
-						   mov			ax, 16
-						   mov			ball_x, ax
-						   jmp			VertCompare
-	MoveRightBall:             
-						   cmp          ax, 148
-						   jg			ExactRight
+	                       jmp          VertCompare
+	ExactLeft:             
+	                       mov          ax, 16
+	                       mov          ball_x, ax
+	                       jmp          VertCompare
+	MoveRightBall:         
+	                       cmp          ax, 148
+	                       jg           ExactRight
 	                       add          ax, 4
 	                       mov          ball_x, ax
-						   jmp			VertCompare
-	ExactRight:
-						   mov			ax, 152
-						   mov			ball_x, ax
-	VertCompare:
-						   cmp			cx, 0
-						   je			MoveDownBall
-	MoveUpBall:
-						   cmp		    bx, 21
-						   jl			ExactUp
+	                       jmp          VertCompare
+	ExactRight:            
+	                       mov          ax, 152
+	                       mov          ball_x, ax
+	VertCompare:           
+	                       cmp          cx, 0
+	                       je           MoveDownBall
+	MoveUpBall:            
+	                       cmp          bx, 21
+	                       jl           ExactUp
 	                       sub          bx, 5
 	                       mov          ball_y, bx
-						   jmp			EndMoveBall
-	ExactUp:
-						   mov			bx, 16
-						   mov			ball_y, bx
-						   jmp			EndMoveBall
-	MoveDownBall:	   
-						   add          bx, 5
+	                       jmp          EndMoveBall
+	ExactUp:               
+	                       mov          bx, 16
 	                       mov          ball_y, bx
-	EndMoveBall:
+	                       jmp          EndMoveBall
+	MoveDownBall:          
+	                       add          bx, 5
+	                       mov          ball_y, bx
+	EndMoveBall:           
 	                       pop          dx
 	                       pop          cx
 	                       pop          bx
@@ -347,7 +347,7 @@ BallPaddleCollision proc
 
 	                       mov          ax, Paddle_x
 	                       mov          bx, Paddle_y
-						   sub			bx, 10
+	                       sub          bx, 10
 
 	                       cmp          ball_x, ax
 	                       jl           NoCollision
@@ -372,14 +372,14 @@ BallPaddleCollision proc
 
 	                       mov          VertBall, 1
 	                       mov          HorzBall, 1
-						   jmp			NoCollision
+	                       jmp          NoCollision
 
 	skipFirstHalf:         
 	                       cmp          ball_x, cx
 	                       jg           NoCollision
-						   sub			cx, level_padhalfx
-						   cmp			ball_x, cx
-						   jl			NoCollision
+	                       sub          cx, level_padhalfx
+	                       cmp          ball_x, cx
+	                       jl           NoCollision
 	                       cmp          ball_y, bx
 	                       jl           NoCollision
 
@@ -414,23 +414,23 @@ draw_start_menu endp
 start_menu proc
 	ToMenu:                
 	                       mov          ah, 0h
-	                       mov          al, 13h              	;320x200
+	                       mov          al, 13h               	;320x200
 	                       int          10h
 
 	                       call         boarder
 	                       call         draw_start_menu
-	                       mov          rectcolour,15        	;ball colour
+	                       mov          rectcolour,15         	;ball colour
 	                       mov          start_menu_option, 1
 	                       mov          ball_x, 84
 	                       mov          ball_y, 48
-	                       call         drawball             	;draw on selected option
+	                       call         drawball              	;draw on selected option
 	                       xor          ax, ax
 	                       xor          bx, bx
 	                       xor          cx, cx
 	                       xor          dx, dx
 	kbloop:                
 	                       mov          ah, 0Ch
-	                       int          21h                  	;clear keyboard buffer
+	                       int          21h                   	;clear keyboard buffer
 	                       call         delay
 
 	                       mov          ah, 1
@@ -464,7 +464,7 @@ start_menu proc
 	weexit:                jmp          exit
 	;-------------------------------------------
 	moveup:                
-	                       mov          rectcolour, 0        	; erase ball
+	                       mov          rectcolour, 0         	; erase ball
 	                       call         drawball
 	                       dec          start_menu_option
 	                       cmp          start_menu_option, 0
@@ -473,7 +473,7 @@ start_menu proc
 	                       jmp          calcOption
 
 	movedown:              
-	                       mov          rectcolour, 0        	; erase ball
+	                       mov          rectcolour, 0         	; erase ball
 	                       call         drawball
 	                       inc          start_menu_option
 	                       cmp          start_menu_option, 4
@@ -512,7 +512,7 @@ start_menu proc
 	exit:                  
 	                       SetCursorPos 18, 1
 	                       mov          ah, 4Ch
-	                       int          21h                  	;exit
+	                       int          21h                   	;exit
 	stgm:                  
 	                       ret
 start_menu endp
@@ -521,15 +521,15 @@ start_menu endp
 	; height = 160
 DrawLevelBorder proc far
 	; Draws the outer black border
-	                       mov          rectcolour, 0        	; black color
-	                       mov          rectwidth, 320       	; whole width
-	                       mov          rectheight, 200      	; whole height
+	                       mov          rectcolour, 0         	; black color
+	                       mov          rectwidth, 320        	; whole width
+	                       mov          rectheight, 200       	; whole height
 	                       mov          rect_x, 0
 	                       mov          rect_y, 0
 	                       call         DrawRectangle
 
 	; Draw the outer cyan border
-	                       mov          rectcolour, 3        	; cyan color
+	                       mov          rectcolour, 3         	; cyan color
 	                       mov          rectwidth, 300
 	                       mov          rectheight, 170
 	                       mov          rect_x, 10
@@ -537,7 +537,7 @@ DrawLevelBorder proc far
 	                       call         DrawRectangle
 
 	; Draw the black inner game rectangle
-	                       mov          rectcolour, 0        	; black color
+	                       mov          rectcolour, 0         	; black color
 	                       mov          rectwidth, 290
 	                       mov          rectheight, 160
 	                       mov          rect_x, 15
@@ -563,10 +563,10 @@ DrawLevelBorder proc far
 DrawLevelBorder endp
 
 DrawDivider proc
-	                       mov          rectcolour, 3        	; cyan color
+	                       mov          rectcolour, 3         	; cyan color
 	                       mov          rectwidth, 2
 	                       mov          rectheight, 170
-	                       mov          rect_x, 159          	; centered
+	                       mov          rect_x, 159           	; centered
 	                       mov          rect_y, 10
 	                       call         DrawRectangle
 	                       ret
@@ -575,7 +575,7 @@ DrawHearts PROC
 	; Check if CurrentLives > 2 (for third heart)
 	                       mov          ax, CurrentLives
 	                       cmp          ax, 3
-	                       jb           skip_third_heart     	; If CurrentLives < 3, skip drawing the third heart
+	                       jb           skip_third_heart      	; If CurrentLives < 3, skip drawing the third heart
 
 	draw_third_heart:      
 	                       SetCursorPos 4 HeartColumn
@@ -586,7 +586,7 @@ DrawHearts PROC
 	; Check if CurrentLives > 1 (for second heart)
 	                       mov          ax, CurrentLives
 	                       cmp          ax, 2
-	                       jb           skip_second_heart    	; If CurrentLives < 2, skip drawing the second heart
+	                       jb           skip_second_heart     	; If CurrentLives < 2, skip drawing the second heart
 
 	draw_second_heart:     
 	                       SetCursorPos 3 HeartColumn
@@ -596,7 +596,7 @@ DrawHearts PROC
 	; Check if CurrentLives > 0 (for first heart)
 	                       mov          ax, CurrentLives
 	                       cmp          ax, 1
-	                       jb           skip_first_heart     	; If CurrentLives < 1, skip drawing the first heart
+	                       jb           skip_first_heart      	; If CurrentLives < 1, skip drawing the first heart
 
 	draw_first_heart:      
 	                       SetCursorPos 2 HeartColumn
@@ -638,11 +638,11 @@ DrawBorderStrings ENDP
 
 level_select proc
 	                       mov          ah, 0
-	                       mov          al, 13h              	;320x200
+	                       mov          al, 13h               	;320x200
 	                       int          10h
 	                       call         boarder
 
-	                       mov          AH, 0Ch              	; Clear Buffer
+	                       mov          AH, 0Ch               	; Clear Buffer
 	                       int          21h
 	                       SetCursorPos 4, 7
 
@@ -650,7 +650,7 @@ level_select proc
 	                       mov          ah,09h
 	                       int          21h
 
-	                       mov          AH, 0Ch              	; Clear Buffer
+	                       mov          AH, 0Ch               	; Clear Buffer
 	                       int          21h
 
 	                       SetCursorPos 12, 6
@@ -659,7 +659,7 @@ level_select proc
 	                       mov          ah,09h
 	                       int          21h
 
-	                       mov          AH, 0Ch              	;Clear Buffer
+	                       mov          AH, 0Ch               	;Clear Buffer
 	                       int          21h
 
 	                       SetCursorPos 14, 7
@@ -668,7 +668,7 @@ level_select proc
 	                       mov          ah,09h
 	                       int          21h
 
-	                       mov          AH, 0Ch              	;Clear Buffer
+	                       mov          AH, 0Ch               	;Clear Buffer
 	                       int          21h
 
 
@@ -688,7 +688,7 @@ level_select proc
 	                       mov          rect_x,217
 	                       call         DrawRectangle
 	again_and_again:       
-	                       mov          AH, 0Ch              	;Clear Buffer
+	                       mov          AH, 0Ch               	;Clear Buffer
 	                       int          21h
 	                       call         delay
 	                       mov          ah, 1
@@ -724,10 +724,10 @@ level_select endp
 	gostartmenu:           jmp          startmenu
 DrawScreen PROC
 	;call         CheckBox
-	                       mov          rectcolour, 0        	;draw ball black
+	                       mov          rectcolour, 0         	;draw ball black
 	                       call         drawball
-						   call         MoveBall
-						   call         CheckBallWallCollision
+	                       call         MoveBall
+	                       call         CheckBallWallCollision
 	;call         BallBoxCollision
 	                       cmp          Level_Selector, 1
 	                       je           level1
@@ -778,30 +778,30 @@ CheckBallWallCollision proc
 
 	; Check collision with left boundary
 	check_left_bound:      
-	                       cmp          ball_x, 17           	; game border starts at 15
-	                       jg          check_right_bound    	; if greater than continue checking on the rest of boundaries
-	                       mov          HorzBall,1    	; reverse the direction to move right
+	                       cmp          ball_x, 17            	; game border starts at 15
+	                       jg           check_right_bound     	; if greater than continue checking on the rest of boundaries
+	                       mov          HorzBall,1            	; reverse the direction to move right
 	
 	; Check collision with right boundary
 	check_right_bound:     
-	                       mov          ax, 158              	; divider line is the right boundary for game border
+	                       mov          ax, 158               	; divider line is the right boundary for game border
 	                       sub          ax, ball_size
 	                       cmp          ball_x, ax
-	                       jl          check_upper_bound
-	                       mov          HorzBall,0    	; reverse the direction to move left
+	                       jl           check_upper_bound
+	                       mov          HorzBall,0            	; reverse the direction to move left
 
 	; Check collision with top boundary
 	check_upper_bound:     
-	                       cmp          ball_y, 16           	; game border starts at 15
+	                       cmp          ball_y, 16            	; game border starts at 15
 	                       jg           check_lower_bound
-	                       mov          VertBall,0    	; reverse direction to move down
+	                       mov          VertBall,0            	; reverse direction to move down
 	; Check collision with bottom boundary
 	check_lower_bound:     
-	                       mov          ax, 168              	; game border lower bound height - ball size
+	                       mov          ax, 168               	; game border lower bound height - ball size
 	                       sub          ax, ball_size
 	                       cmp          ball_y, ax
-	                       jl          end_check
-	                       mov          VertBall,1    	; reverse direction to move up
+	                       jl           end_check
+	                       mov          VertBall,1            	; reverse direction to move up
 	end_check:             
 	                       ret
 	
@@ -825,14 +825,14 @@ Main proc far
 	                       mov          playerTwoScore, 0
 
 	                       mov          bool_boxs, 1
-	                       call         BoxCreator           	;intialize the boxs based on the level
+	                       call         BoxCreator            	;intialize the boxs based on the level
 	
 	;;CALL START MENU
 	startmenu:             
 	                       call         start_menu
 	;;CALL LEVEL SELECT
 	                       call         level_select
-	                       call         BoxCreator           	;intialize the boxs based on the level
+	                       call         BoxCreator            	;intialize the boxs based on the level
 	;;START GAME
 	startgame:             
 	;    call         gameBoarder
@@ -880,6 +880,6 @@ Main proc far
 	;;QUIT GAME
 	                       SetCursorPos 18, 1
 	                       mov          ah, 4Ch
-	                       int          21h                  	;exit
+	                       int          21h                   	;exit
 Main endp
 END Main
