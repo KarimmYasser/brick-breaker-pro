@@ -66,7 +66,8 @@ include     macros.inc      ; general macros
 	starting_y        dw  10h, 10h, 10h, 10h, 10h, 1Bh, 1Bh, 1Bh, 1Bh, 1Bh, 26h, 26h, 26h, 26h, 26h, 31h, 31h, 31h, 31h, 31h	; 20 bricks
 	
 	bricks_no         dw  20
-	color             db  50h                                                                                               	; init value
+	color             db  50h
+	colors            db  59h, 56h, 50h                                                                                     	; init value
 	
 	bool_boxs         dw  1
 	Bool_BoxExist     dw  1
@@ -597,7 +598,7 @@ DrawAllBricks PROC
 	                    mov          color, 00h
 
 	                    cmp          ax, 1
-	                    mov          color, 50h
+	                    mov          color, 59h
 	                    je           draw
 
 	                    cmp          ax, 2
@@ -605,7 +606,7 @@ DrawAllBricks PROC
 	                    je           draw
 
 	                    cmp          ax, 3
-	                    mov          color, 56h
+	                    mov          color, 50h
 	                    je           draw
 
 	draw:               
@@ -688,7 +689,7 @@ level_select proc
 	                    int          21h
 
 
-	                    mov          rectcolour, 1
+	                    mov          rectcolour, 59h
 	                    mov          rectwidth, 40
 	                    mov          rectheight, 26
 
@@ -696,11 +697,11 @@ level_select proc
 	                    mov          rect_y, 46
 	                    call         DrawRectangle
 				   
-	                    mov          rectcolour,13
+	                    mov          rectcolour,54h
 	                    mov          rect_x,136
 	                    call         DrawRectangle
 				   
-	                    mov          rectcolour,4
+	                    mov          rectcolour,50h
 	                    mov          rect_x,217
 	                    call         DrawRectangle
 	again_and_again:    
