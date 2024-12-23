@@ -1,605 +1,782 @@
 .MODEL SMALL
 .STACK 100h
+include     macros.inc      ; general macros
 	
 .DATA
-	rect_x            dw 0
-	rect_y            dw 0
-	rectwidth         dw 0
-	rectheight        dw 0
-	rectcolour        db 0
+	rect_x            dw  0
+	rect_y            dw  0
+	rectwidth         dw  0
+	rectheight        dw  0
+	rectcolour        db  0
 
-	ball_x            dw 100
-	ball_y            dw 100
+	playerOneLives    dw  3
+	playerTwoLives    dw  3
+	playerOneScore    db  0
+	playerTwoScore    db  0
 
-	VertBall dw 0
-	HorzBall dw 0
-
-	Paddle_x dw 50
-	Paddle_y dw 175
-	paddle_x_half dw 0
-
-	level_paddle_x   dw 30
-	level_padhalfx   dw 15
+	ball_x            dw  100
+	ball_y            dw  100
 	
-	ScoreCounter      db 0
-	CurrentLives      dw 3
-	Level_Selector    dw 1
+	;-------------- For Chat
+	var               db  ?
+	sendX             db  0
+	sendY             db  0Bh
+	recieveX          db  0
+	recieveY          db  18h
+	;-----------------------
+	HeartColumn       db  0
+	buffer            db  100 dup('$')
+	ScoreName         db  "Score: $"
+	LevelName         db  "Level: $"
 
-	bool_boxs         dw 1
-	Bool_BoxExist     dw 1
-	Bool_Box          dw 1, 1, 1, 1, 1, 1, 1, 1
-	NumBoolBox		  dw 8
+	VertBall          dw  0
+	HorzBall          dw  0
 
-	start_menu_option db 1
-	string_start_game db 'START GAME$'
-	string_exit_game  db 'EXIT GAME$'
-	one               db '1)$'
-	two               db '2)$'
-	levelnum_string   db '(1)        (2)       (3)$'
-	level_string 	  db 'LEVEL      LEVEL     LEVEL$'
+	Paddle_x          dw  50                           	; start x position for paddle
+	Paddle_y          dw  160                          	; start y position for paddle
+	paddle_x_half     dw  0
+
+	level_paddle_x    dw  30                           	; paddle width - changes according to level chosen
+	level_padhalfx    dw  15
+
+	paddleSpeed       equ 7
+	
+	ScoreCounter      db  0
+	CurrentLives      dw  3
+	Level_Selector    dw  1
+
+	bool_boxs         dw  1
+	Bool_BoxExist     dw  1
+	Bool_Box          dw  1, 1, 1, 1, 1, 1, 1, 1
+	NumBoolBox        dw  8
+
+	start_menu_option db  1
+	string_start_game db  'START GAME$'
+	string_chat       db  'CHAT$'
+	string_exit_game  db  'EXIT GAME$'
+	one               db  '1)$'
+	two               db  '2)$'
+	three             db  '3)$'
+	levelnum_string   db  '(1)        (2)       (3)$'
+	level_string      db  'LEVEL      LEVEL     LEVEL$'
 	
 .CODE
-PrintString MACRO string
-		                           lea          dx, string
-		                           mov          ah, 09H
-		                           int          21h
-ENDM
-SetCursorPos MACRO row, col
-		                            mov          ah, 02H
-		                            mov          bh, 0
-		                            mov          dh, row
-		                            mov          dl, col
-		                            int          10h
-ENDM
+
 BoxCreator PROC
-	                   mov          cx, NumBoolBox
-	                   mov          si, offset Bool_Box
+	                    mov          cx, NumBoolBox
+	                    mov          si, offset Bool_Box
 	
-	                   mov          Bool_BoxExist, 1
-	                   mov          ax, Level_Selector
+	                    mov          Bool_BoxExist, 1
+	                    mov          ax, Level_Selector
 	
-	loopBC:            
+	loopBC:             
 	
-	                   mov          [si], ax
+	                    mov          [si], ax
 	
-	                   add          si, 2
+	                    add          si, 2
 	
-	                   loop         loopBC
+	                    loop         loopBC
 	
-	                   ret
+	                    ret
 BoxCreator ENDP
 moveLeft proc
-					   mov			ax, level_paddle_x
-					   mov			rectwidth, ax
-					   mov			rectcolour, 0
-					   call			DrawPaddle
-					   cmp			Paddle_x, 17
-					   jle			endleft
-					   sub			Paddle_x, 7
-					   ret
-	endleft:
-					   mov			Paddle_x, 10
-	                   ret
+	                    mov          ax, level_paddle_x
+	                    mov          rectwidth, ax
+	                    mov          rectcolour, 0
+	                    call         WAIT_FOR_VSYNC
+	                    call         DrawPaddle
+	                    cmp          Paddle_x, 22            	; left border boundary + speed
+	                    jle          endleft
+	                    sub          Paddle_x, paddleSpeed
+	                    ret
+	endleft:            
+	                    mov          Paddle_x, 15            	; left border boundary
+	                    ret
 moveLeft endp
+
 moveRight proc
-	                   mov			rectcolour, 0
-					   mov			ax, level_paddle_x
-					   mov			rectwidth, ax
-					   call			DrawPaddle
-					   mov 			ax, Paddle_x
-					   add			ax, level_paddle_x
-					   cmp			ax, 148
-					   jge			endright
-					   add			Paddle_x, 7
-					   ret
-	endright:
-					   mov 			ax, 155
-					   sub			ax, level_paddle_x
-					   mov			Paddle_x, ax
-	                   ret
+	                    mov          rectcolour, 0
+	                    mov          ax, level_paddle_x
+	                    mov          rectwidth, ax
+	                    call         WAIT_FOR_VSYNC
+	                    call         DrawPaddle
+	                    mov          ax, Paddle_x
+	                    add          ax, level_paddle_x
+	                    cmp          ax, 151                 	; right border boundary - speed
+	                    jge          endright
+	                    add          Paddle_x, paddleSpeed
+	                    ret
+	endright:           
+	                    mov          ax, 159                 	; right border boundary
+	                    sub          ax, level_paddle_x
+	                    mov          Paddle_x, ax
+	                    ret
 moveRight endp
+
+WAIT_FOR_VSYNC PROC NEAR
+	                    push         ax
+	                    push         dx
+	                    mov          dx, 3DAh                	; VGA status port
+	vsync_wait1:        
+	                    in           al, dx
+	                    test         al, 8                   	; Check vertical retrace
+	                    jnz          vsync_wait1             	; Wait if already in retrace
+	vsync_wait2:        
+	                    in           al, dx
+	                    test         al, 8                   	; Wait for vertical retrace
+	                    jz           vsync_wait2
+	                    pop          dx
+	                    pop          ax
+	                    ret
+WAIT_FOR_VSYNC ENDP
+
 DrawRectangle PROC
 	
-	                   push         cx
+	                    push         cx
 	
-	                   mov          Al, rectcolour
-	                   mov          CX, rect_x
-	                   dec          cx                   	; 0 based
-	                   add          CX, rectwidth
-	                   mov          DX, rect_y
-	                   add          DX, rectheight
-	looprectvertical:  
-	looprecthorizontal:
-	                   mov          ah, 0Ch
-	                   int          10h
-	                   dec          cx
-	                   cmp          CX, rect_x
-	                   jge          looprectvertical
-	                   add          CX, rectwidth
-	                   dec          dx
-	                   cmp          DX, rect_y
-	                   jge          looprecthorizontal
+	                    mov          Al, rectcolour
+	                    mov          CX, rect_x
+	                    dec          cx                      	; 0 based
+	                    add          CX, rectwidth
+	                    mov          DX, rect_y
+	                    add          DX, rectheight
+	looprectvertical:   
+	looprecthorizontal: 
+	                    mov          ah, 0Ch
+	                    int          10h
+	                    dec          cx
+	                    cmp          CX, rect_x
+	                    jge          looprectvertical
+	                    add          CX, rectwidth
+	                    dec          dx
+	                    cmp          DX, rect_y
+	                    jge          looprecthorizontal
 	
 	
-	                   pop          cx
-	                   ret
+	                    pop          cx
+	                    ret
 DrawRectangle ENDP
+
 boarder proc
+	                    mov          rectcolour, 3
+	                    mov          rectwidth, 320
+	                    mov          rectheight, 200
+	                    mov          rect_x, 0
+	                    mov          rect_y, 0
+	                    call         DrawRectangle
 	
-	
-	                   mov          rectcolour, 3
-	                   mov          rectwidth, 320
-	                   mov          rectheight, 200
-	                   mov          rect_x, 0
-	                   mov          rect_y, 0
-	                   call         DrawRectangle
-	
-	                   mov          rectcolour, 0
-	                   mov          rectwidth, 300       	; 320 - 10 - 10
-	                   mov          rectheight, 180      	; 200 - 10 - 10
-	                   mov          rect_x, 10
-	                   mov          rect_y, 10
-	                   call         DrawRectangle
-	                   ret
+	                    mov          rectcolour, 0
+	                    mov          rectwidth, 300          	; 320 - 10 - 10
+	                    mov          rectheight, 180         	; 200 - 10 - 10
+	                    mov          rect_x, 10
+	                    mov          rect_y, 10
+	                    call         DrawRectangle
+	                    ret
 boarder endp
+
 gameBoarder proc
-					   mov          rectcolour, 3
-	                   mov          rectwidth, 320
-	                   mov          rectheight, 200
-	                   mov          rect_x, 0
-	                   mov          rect_y, 0
-	                   call         DrawRectangle
+	                    mov          rectcolour, 3
+	                    mov          rectwidth, 320
+	                    mov          rectheight, 200
+	                    mov          rect_x, 0
+	                    mov          rect_y, 0
+	                    call         DrawRectangle
 
-					   mov          rectcolour, 0
-	                   mov          rectwidth, 145  	
-	                   mov          rectheight, 180      	
-	                   mov          rect_x, 10
-	                   mov          rect_y, 10
-	                   call         DrawRectangle
+	                    mov          rectcolour, 0
+	                    mov          rectwidth, 145
+	                    mov          rectheight, 180
+	                    mov          rect_x, 10
+	                    mov          rect_y, 10
+	                    call         DrawRectangle
 
-					   mov          rectcolour, 0
-	                   mov          rectwidth, 145  	
-	                   mov          rectheight, 180      	
-	                   mov          rect_x, 165
-	                   mov          rect_y, 10
-	                   call         DrawRectangle
+	                    mov          rectcolour, 0
+	                    mov          rectwidth, 145
+	                    mov          rectheight, 180
+	                    mov          rect_x, 165
+	                    mov          rect_y, 10
+	                    call         DrawRectangle
 
-	                   ret
+	                    ret
 gameBoarder endp
+
 delay proc
-	                   push         ax
-	                   push         bx
-	                   push         cx
-	                   push         dx
+	                    push         ax
+	                    push         bx
+	                    push         cx
+	                    push         dx
 
-	                   mov          cx, 11000
+	                    mov          cx, 11000
 
-	                   mov          ax, Level_Selector
-	                   cmp          ax, 1
-	                   je           level1d
-	                   cmp          ax, 2
-	                   je           level2d
-	                   cmp          ax, 3
-	                   je           level3d
-	                   jmp          end_set_delay
+	                    mov          ax, Level_Selector
+	                    cmp          ax, 1
+	                    je           level1d
+	                    cmp          ax, 2
+	                    je           level2d
+	                    cmp          ax, 3
+	                    je           level3d
+	                    jmp          end_set_delay
 
 	level1d:            
-	                   mov          bx, 15
-	                   jmp          end_set_delay
+	                    mov          bx, 15
+	                    jmp          end_set_delay
 
 	level2d:            
-	                   mov          bx, 10
-	                   jmp          end_set_delay
+	                    mov          bx, 10
+	                    jmp          end_set_delay
 
 	level3d:            
-	                   mov          bx, 5
+	                    mov          bx, 5
 
-	end_set_delay:     
+	end_set_delay:      
 
-	mydelay:           
-	                   push         cx
-	                   mov          cx, bx
-	mydelay1:          
-	                   dec          cx
-	                   jnz          mydelay1
-	                   pop          cx
-	                   loop         mydelay
+	mydelay:            
+	                    push         cx
+	                    mov          cx, bx
+	mydelay1:           
+	                    dec          cx
+	                    jnz          mydelay1
+	                    pop          cx
+	                    loop         mydelay
 
-	                   pop          dx
-	                   pop          cx
-	                   pop          bx
-	                   pop          ax
+	                    pop          dx
+	                    pop          cx
+	                    pop          bx
+	                    pop          ax
 
-	                   ret
+	                    ret
 delay ENDP
+
 drawball proc
-	                   mov          rectwidth, 6
-	                   mov          rectheight, 6
+	                    mov          rectwidth, 6
+	                    mov          rectheight, 6
 
-	                   mov          ax, ball_x
-	                   mov          rect_x, ax
-	                   mov          ax, ball_y
-	                   mov          rect_y, ax
-	                   call         DrawRectangle
+	                    mov          ax, ball_x
+	                    mov          rect_x, ax
+	                    mov          ax, ball_y
+	                    mov          rect_y, ax
+	                    call         DrawRectangle
 
-	                   sub          rectwidth, 2
-	                   add          rectheight, 2
-	                   add          rect_x, 1
-	                   sub          rect_y, 1
-	                   call         DrawRectangle
+	                    sub          rectwidth, 2
+	                    add          rectheight, 2
+	                    add          rect_x, 1
+	                    sub          rect_y, 1
+	                    call         DrawRectangle
 
-	                   add          rectwidth, 4
-	                   sub          rectheight, 4
-	                   sub          rect_x, 2
-	                   add          rect_y, 2
-	                   call         DrawRectangle
+	                    add          rectwidth, 4
+	                    sub          rectheight, 4
+	                    sub          rect_x, 2
+	                    add          rect_y, 2
+	                    call         DrawRectangle
 
-	                   ret
+	                    ret
 drawball endp
+
 DrawPaddle PROC
-					   ;mov rectcolour, 15
-					   ;mov rectwidth, 50
-					   mov rectheight, 10
+	;mov rectcolour, 15
+	;mov rectwidth, 50
+	                    mov          rectheight, 10
 					   
-					   mov si, Paddle_x
-					   mov rect_x, si
-					   mov si, Paddle_y
-					   mov rect_y, si
-					   call DrawRectangle
+	                    mov          si, Paddle_x
+	                    mov          rect_x, si
+	                    mov          si, Paddle_y
+	                    mov          rect_y, si
+	                    call         DrawRectangle
 					   
-					   ret
+	                    ret
 DrawPaddle ENDP
+
 BallPaddleCollision proc
-	                   push 	   CX
-					   push 	   DX
+	                    push         CX
+	                    push         DX
 
-					   mov			ax, Paddle_x
-					   sub 			ax, 5
-					   mov			bx, Paddle_y
-					   sub			bx, 10
+	                    mov          ax, Paddle_x
+	                    sub          ax, 5
+	                    mov          bx, Paddle_y
+	                    sub          bx, 10
 
-					   cmp			ball_x, ax
-					   jl			NoCollision
+	                    cmp          ball_x, ax
+	                    jl           NoCollision
 
-					   add			ax, level_paddle_x
-					   mov 			paddle_x_half, ax
-					   mov			dx,	level_padhalfx
-					   sub			paddle_x_half, dx
-					   mov 			cx, paddle_x_half
+	                    add          ax, level_paddle_x
+	                    mov          paddle_x_half, ax
+	                    mov          dx,	level_padhalfx
+	                    sub          paddle_x_half, dx
+	                    mov          cx, paddle_x_half
 
-					   cmp			ball_x, ax
-					   jg			skipFirstHalf
-					   cmp			ball_x, cx
-					   jl			skipFirstHalf
-					   cmp			ball_y, bx
-					   jl			skipFirstHalf
+	                    cmp          ball_x, ax
+	                    jg           skipFirstHalf
+	                    cmp          ball_x, cx
+	                    jl           skipFirstHalf
+	                    cmp          ball_y, bx
+	                    jl           skipFirstHalf
 
-					   add			bx, 10
+	                    add          bx, 10
 
-					   cmp			ball_y, bx
-					   jg			skipFirstHalf
+	                    cmp          ball_y, bx
+	                    jg           skipFirstHalf
 
-					   mov			VertBall, 1
-					   mov			HorzBall, 0
+	                    mov          VertBall, 1
+	                    mov          HorzBall, 0
 
-skipFirstHalf:
-					   cmp			ball_x, ax
-					   jg			NoCollision
-					   cmp			ball_x, cx
-					   jg			NoCollision
-					   cmp			ball_y, bx
-					   jl			NoCollision
+	skipFirstHalf:      
+	                    cmp          ball_x, ax
+	                    jg           NoCollision
+	                    cmp          ball_x, cx
+	                    jg           NoCollision
+	                    cmp          ball_y, bx
+	                    jl           NoCollision
 
-					   add			bx, 10
+	                    add          bx, 10
 
-					   cmp			ball_y, bx
-					   jl			NoCollision
+	                    cmp          ball_y, bx
+	                    jl           NoCollision
 
-					   mov			VertBall, 1
-					   mov			HorzBall, 1
+	                    mov          VertBall, 1
+	                    mov          HorzBall, 1
 
-NoCollision:
-					   pop 			DX
-					   pop 			CX
-	                   ret
+	NoCollision:        
+	                    pop          DX
+	                    pop          CX
+	                    ret
 BallPaddleCollision endp
 draw_start_menu proc
-	                   SetCursorPos 8, 16
-	                   PrintString  string_start_game
-	                   SetCursorPos 8, 12
-	                   PrintString  one
-	                   SetCursorPos 14, 16
-	                   PrintString  string_exit_game
-	                   SetCursorPos 14, 12
-	                   PrintString  two
-	                   ret
+	                    SetCursorPos 6, 16
+	                    PrintString  string_start_game
+	                    SetCursorPos 6, 12
+	                    PrintString  one
+	                    SetCursorPos 12, 16
+	                    PrintString  string_chat
+	                    SetCursorPos 12, 12
+	                    PrintString  two
+	                    SetCursorPos 18, 16
+	                    PrintString  string_exit_game
+	                    SetCursorPos 18, 12
+	                    PrintString  three
+	                    ret
 draw_start_menu endp
 start_menu proc
-	ToMenu:            
-					   mov          ah, 0h
-	                   mov          al, 13h              	;320x200
-	                   int          10h
+	ToMenu:             
+	                    mov          ah, 0h
+	                    mov          al, 13h                 	;320x200
+	                    int          10h
 
-	                   call         boarder
-	                   call         draw_start_menu
-	                   mov          rectcolour,15        	;ball colour
-	                   mov          start_menu_option, 1
-	                   mov          ball_x, 84
-	                   mov          ball_y, 64
-	                   call         drawball             	;draw on selected option
-	                   xor          ax, ax
-	                   xor          bx, bx
-	                   xor          cx, cx
-	                   xor          dx, dx
-	kbloop:            
-	                   mov          ah, 0Ch
-	                   int          21h                  	;clear keyboard buffer
-	                   call         delay
+	                    call         boarder
+	                    call         draw_start_menu
+	                    mov          rectcolour,15           	;ball colour
+	                    mov          start_menu_option, 1
+	                    mov          ball_x, 84
+	                    mov          ball_y, 48
+	                    call         drawball                	;draw on selected option
+	                    xor          ax, ax
+	                    xor          bx, bx
+	                    xor          cx, cx
+	                    xor          dx, dx
+	kbloop:             
+	                    mov          ah, 0Ch
+	                    int          21h                     	;clear keyboard buffer
+	                    call         delay
 
-	                   mov          ah, 1
-	                   int          16h
-	                   mov          bx, ax
-	                   jz           kbloop
-	                   cmp          bh, 48h
-	                   je           moveup
-	                   cmp          bh, 50h
-	                   je           movedown
-	                   cmp          bl, 13
-					   jne		    nxtcmp1
-	                   jmp          select
-	nxtcmp1:
-	                   cmp          bl,'1'
-	                   jne          nxtcmp2
-					   jmp		    stgm
-	nxtcmp2:
-	                   cmp          bl,'2'
-	                   jne          nxtcmp3
-					   jmp		    exit
-	nxtcmp3:
-	                   cmp          bl, 27
-	                   je           exit
-					   jmp		    kbloop
-	moveup:            
-	                   mov          rectcolour, 0        	; erase ball
-	                   call         drawball
-	                   dec          start_menu_option
-	                   cmp          start_menu_option, 0
-	                   jg           calcOption
-	                   mov          start_menu_option, 1
-	                   jmp          calcOption
+	                    mov          ah, 1
+	                    int          16h
+	                    mov          bx, ax
+	                    jz           kbloop
+	                    cmp          bh, 48h
+	                    je           moveup
+	                    cmp          bh, 50h
+	                    je           movedown
+	                    cmp          bl, 13
+	                    jne          nxtcmp1
+	                    jmp          select
+	nxtcmp1:            
+	                    cmp          bl,'1'
+	                    jne          nxtcmp2
+	                    jmp          stgm
+	nxtcmp2:            
+	                    cmp          bl,'2'
+	                    jne          nxtcmp3
+	                    jmp          chatting
+	nxtcmp3:            
+	                    cmp          bl,'3'
+	                    jne          nxtcmp4
+	                    jmp          exit
+	nxtcmp4:            
+	                    cmp          bl, 27
+	                    je           weexit
+	                    jmp          kbloop
+	;-------------------------------------------
+	weexit:             jmp          exit
+	;-------------------------------------------
+	moveup:             
+	                    mov          rectcolour, 0           	; erase ball
+	                    call         drawball
+	                    dec          start_menu_option
+	                    cmp          start_menu_option, 0
+	                    jg           calcOption
+	                    mov          start_menu_option, 1
+	                    jmp          calcOption
 
-	movedown:          
-	                   mov          rectcolour, 0        	; erase ball
-	                   call         drawball
-	                   inc          start_menu_option
-	                   cmp          start_menu_option, 3
-	                   jl           calcOption
-	                   mov          start_menu_option, 2
-	                   jmp          calcOption
-	calcOption:        
-	                   cmp          start_menu_option, 2
-	                   je           option2
-	                   mov          ball_x, 84
-	                   mov          ball_y, 64
-	                   mov          rectcolour, 15
-	                   call         drawball
-	                   jmp          kbloop
-	option2:           
-	                   mov          ball_x, 84
-	                   mov          ball_y, 112
-	                   mov          rectcolour, 15
-	                   call         drawball
-	                   jmp          kbloop
-	select:            
-	                   cmp          start_menu_option, 1
-	                   je           stgm
-	                   cmp          start_menu_option, 2
-	                   jne          stgm
-	exit:              
-					   SetCursorPos 18, 1
-	                   mov          ah, 4Ch
-	                   int          21h                  	;exit
-	stgm:              
-	                   ret
+	movedown:           
+	                    mov          rectcolour, 0           	; erase ball
+	                    call         drawball
+	                    inc          start_menu_option
+	                    cmp          start_menu_option, 4
+	                    jl           calcOption
+	                    mov          start_menu_option, 3
+	                    jmp          calcOption
+	calcOption:         
+	                    cmp          start_menu_option, 2
+	                    je           option2
+	                    cmp          start_menu_option, 3
+	                    je           option3
+	                    mov          ball_x, 84
+	                    mov          ball_y, 48
+	                    mov          rectcolour, 15
+	                    call         drawball
+	                    jmp          kbloop
+	option2:            
+	                    mov          ball_x, 84
+	                    mov          ball_y, 96
+	                    mov          rectcolour, 15
+	                    call         drawball
+	                    jmp          kbloop
+	option3:            
+	                    mov          ball_x, 84
+	                    mov          ball_y, 144
+	                    mov          rectcolour, 15
+	                    call         drawball
+	                    jmp          kbloop
+	select:             
+	                    cmp          start_menu_option, 1
+	                    je           stgm
+	                    cmp          start_menu_option, 2
+	                    je           chatting
+	                    jmp          exit
+	chatting:           
+	exit:               
+	                    SetCursorPos 18, 1
+	                    mov          ah, 4Ch
+	                    int          21h                     	;exit
+	stgm:               
+	                    ret
 start_menu endp
+DrawLevelBorder proc far
+	; Draws the outer black border
+	                    mov          rectcolour, 0           	; black color
+	                    mov          rectwidth, 320          	; whole width
+	                    mov          rectheight, 200         	; whole height
+	                    mov          rect_x, 0
+	                    mov          rect_y, 0
+	                    call         DrawRectangle
+
+	; Draw the outer cyan border
+	                    mov          rectcolour, 3           	; cyan color
+	                    mov          rectwidth, 300
+	                    mov          rectheight, 170
+	                    mov          rect_x, 10
+	                    mov          rect_y, 10
+	                    call         DrawRectangle
+
+	; Draw the black inner game rectangle
+	                    mov          rectcolour, 0           	; black color
+	                    mov          rectwidth, 290
+	                    mov          rectheight, 160
+	                    mov          rect_x, 15
+	                    mov          rect_y, 15
+	                    call         DrawRectangle
+
+	; draw hearts for both players
+	                    mov          ax, playerOneLives
+	                    mov          CurrentLives, ax
+	                    mov          HeartColumn, 0
+	                    call         DrawHearts
+
+	                    mov          ax, playerTwoLives
+	                    mov          CurrentLives, ax
+	                    mov          HeartColumn, 79
+                      
+	                    call         DrawHearts
+                       
+	; draw score and level
+	                    call         DrawBorderStrings
+	                    call         DrawDivider
+	                    ret
+DrawLevelBorder endp
+
+DrawDivider proc
+	                    mov          rectcolour, 3           	; cyan color
+	                    mov          rectwidth, 2
+	                    mov          rectheight, 170
+	                    mov          rect_x, 159             	; centered
+	                    mov          rect_y, 10
+	                    call         DrawRectangle
+	                    ret
+DrawDivider endp
+DrawHearts PROC
+	; Check if CurrentLives > 2 (for third heart)
+	                    mov          ax, CurrentLives
+	                    cmp          ax, 3
+	                    jb           skip_third_heart        	; If CurrentLives < 3, skip drawing the third heart
+
+	draw_third_heart:   
+	                    SetCursorPos 4 HeartColumn
+	                    DrawHeart
+
+	skip_third_heart:   
+
+	; Check if CurrentLives > 1 (for second heart)
+	                    mov          ax, CurrentLives
+	                    cmp          ax, 2
+	                    jb           skip_second_heart       	; If CurrentLives < 2, skip drawing the second heart
+
+	draw_second_heart:  
+	                    SetCursorPos 3 HeartColumn
+	                    DrawHeart
+
+	skip_second_heart:  
+	; Check if CurrentLives > 0 (for first heart)
+	                    mov          ax, CurrentLives
+	                    cmp          ax, 1
+	                    jb           skip_first_heart        	; If CurrentLives < 1, skip drawing the first heart
+
+	draw_first_heart:   
+	                    SetCursorPos 2 HeartColumn
+	                    DrawHeart
+
+	skip_first_heart:   
+	                    ret
+DrawHearts ENDP
+DrawBorderStrings proc
+	; Save the registers
+	                    push         ax
+	                    push         bx
+	                    push         cx
+	                    push         dx
+	                    push         bp
+	                    push         si
+	                    push         di
+
+	                    SetCursorPos 23 2
+	                    PrintString  ScoreName
+
+	                    SetCursorPos 24 2
+	                    PrintString  LevelName
+
+	                    SetCursorPos 23 20
+	                    PrintString  ScoreName
+	                    SetCursorPos 24 20
+	                    PrintString  LevelName
+
+	                    pop          di
+	                    pop          si
+	                    pop          bp
+	                    pop          dx
+	                    pop          cx
+	                    pop          bx
+	                    pop          ax
+	                    ret
+DrawBorderStrings ENDP
+
 level_select proc
-					   mov ah, 0
-  					   mov al, 13h    ;320x200
-					   int 10h
-					   call boarder
+	                    mov          ah, 0
+	                    mov          al, 13h                 	;320x200
+	                    int          10h
+	                    call         boarder
+
+	                    mov          AH, 0Ch                 	; Clear Buffer
+	                    int          21h
+	                    SetCursorPos 4, 7
+
+	                    lea          dx,levelnum_string
+	                    mov          ah,09h
+	                    int          21h
+
+	                    mov          AH, 0Ch                 	; Clear Buffer
+	                    int          21h
+
+	                    SetCursorPos 12, 6
+
+	                    lea          dx,level_string
+	                    mov          ah,09h
+	                    int          21h
+
+	                    mov          AH, 0Ch                 	;Clear Buffer
+	                    int          21h
+
+	                    SetCursorPos 14, 7
+
+	                    lea          dx,levelnum_string
+	                    mov          ah,09h
+	                    int          21h
+
+	                    mov          AH, 0Ch                 	;Clear Buffer
+	                    int          21h
 
 
+	                    mov          rectcolour, 1
+	                    mov          rectwidth, 40
+	                    mov          rectheight, 26
 
-					   mov AH, 0Ch 		;Clear Buffer
-					   int 21h
-					   SetCursorPos 4, 7
-
-					   lea dx,levelnum_string
-					   mov ah,09h
-					   int 21h
-
-					   mov AH, 0Ch		;Clear Buffer
-					   int 21h
-
-					   SetCursorPos 12, 6
-
-					   lea dx,level_string
-					   mov ah,09h
-					   int 21h
-
-					   mov AH, 0Ch		;Clear Buffer
-					   int 21h
-
-					   SetCursorPos 14, 7
-
-					   lea dx,levelnum_string
-					   mov ah,09h
-					   int 21h
-
-					   mov AH, 0Ch		;Clear Buffer
-					   int 21h
-
-
-					   mov rectcolour, 1
-					   mov rectwidth, 40
-					   mov rectheight, 26
-
-					   mov rect_x, 48
-					   mov rect_y, 46
-					   call DrawRectangle
+	                    mov          rect_x, 48
+	                    mov          rect_y, 46
+	                    call         DrawRectangle
 				   
-					   mov rectcolour,13
-					   mov rect_x,136
-					   call DrawRectangle
+	                    mov          rectcolour,13
+	                    mov          rect_x,136
+	                    call         DrawRectangle
 				   
-					   mov rectcolour,4
-					   mov rect_x,217
-					   call DrawRectangle
-	again_and_again:
-					   mov AH, 0Ch		;Clear Buffer
-					   int 21h
-					   call delay
-					   mov ah, 1
-					   int 16h
-					   mov bx,ax
-					   jz again_and_again
-					   cmp bl, '1'
-    				   je set_level_1
-    				   cmp bl, '2'
-    				   je set_level_2
-    				   cmp bl, '3'
-    				   je set_level_3
-    				   cmp bl, 13
-    				   je gostartmenu
-    				   cmp bl, 8
-    				   je gostartmenu
-    				   cmp bl, 27
-    				   je gostartmenu
+	                    mov          rectcolour,4
+	                    mov          rect_x,217
+	                    call         DrawRectangle
+	again_and_again:    
+	                    mov          AH, 0Ch                 	;Clear Buffer
+	                    int          21h
+	                    call         delay
+	                    mov          ah, 1
+	                    int          16h
+	                    mov          bx,ax
+	                    jz           again_and_again
+	                    cmp          bl, '1'
+	                    je           set_level_1
+	                    cmp          bl, '2'
+	                    je           set_level_2
+	                    cmp          bl, '3'
+	                    je           set_level_3
+	                    cmp          bl, 13
+	                    je           gostartmenu
+	                    cmp          bl, 8
+	                    je           gostartmenu
+	                    cmp          bl, 27
+	                    je           gostartmenu
 
-	set_level_1:
-    				   mov Level_Selector, 1
-    				   ret
+	set_level_1:        
+	                    mov          Level_Selector, 1
+	                    ret
 
-	set_level_2:
-    				   mov Level_Selector, 2
-    				   ret
+	set_level_2:        
+	                    mov          Level_Selector, 2
+	                    ret
 
-	set_level_3:
-    				   mov Level_Selector, 3
-    				   ret
-	
-					   call boarder
-					   ret
+	set_level_3:        
+	                    mov          Level_Selector, 3
+	                    ret
+						   
 level_select endp
-gostartmenu:		   jmp startmenu
+	gostartmenu:        jmp          startmenu
 DrawScreen PROC
-	                   ;call         CheckBox
-					   mov 			rectcolour, 0	;draw ball black
-					   call			drawball
-	                   ;call         BallMovement
-	                   ;call         BallWallCollision
-	                   ;call         BallBoxCollision
-					   cmp			Level_Selector, 1
-					   je			level1
-					   cmp			Level_Selector, 2
-					   je			level2
-					   cmp			Level_Selector, 3
-					   je			level3
-	level1:
-					   mov			level_paddle_x, 30
-					   mov			level_padhalfx, 15
-					   call 	   	BallPaddleCollision
-					   mov 		    rectwidth, 30
-					   mov			rectcolour, 15
-					   call			DrawPaddle
-					   jmp			NoBoxS
+	;call         CheckBox
+	                    mov          rectcolour, 0           	;draw ball black
+	                    call         drawball
+	;call         BallMovement
+	;call         BallWallCollision
+	;call         BallBoxCollision
+	                    cmp          Level_Selector, 1
+	                    je           level1
+	                    cmp          Level_Selector, 2
+	                    je           level2
+	                    cmp          Level_Selector, 3
+	                    je           level3
+	level1:             
+	                    mov          level_paddle_x, 30
+	                    mov          level_padhalfx, 15
+	                    call         BallPaddleCollision
+	                    mov          rectwidth, 30
+	                    mov          rectcolour, 15
+	                    call         DrawPaddle
+	                    jmp          NoBoxS
 
 
-	level2:
-					   mov			level_paddle_x, 20
-					   mov			level_padhalfx, 10
-					   call 	   	BallPaddleCollision
-					   mov 		    rectwidth, 20
-					   mov			rectcolour, 15
-					   call			DrawPaddle
-					   jmp			NoBoxS
-	level3:
-					   mov			level_paddle_x, 20
-					   mov			level_padhalfx, 10
-					   call 	   	BallPaddleCollision
-					   mov 		    rectwidth, 20
-					   mov			rectcolour, 15
-					   call			DrawPaddle
-					   ;call         BallBoxFCollision
-					   ;call         DrawBoxF
-					   cmp		  	bool_boxS, 1
-					   jne			NoBoxS
-					   ;call         DrawBoxS
-					   ;call         BallBoxSCollision
-	NoBoxS:
-					   mov			rectcolour, 15
-					   call         drawball
-					   ;call         DrawBox
-					   ;call         DrawBoarder
-	                   ret
+	level2:             
+	                    mov          level_paddle_x, 20
+	                    mov          level_padhalfx, 10
+	                    call         BallPaddleCollision
+	                    mov          rectwidth, 20
+	                    mov          rectcolour, 15
+	                    call         DrawPaddle
+	                    jmp          NoBoxS
+	level3:             
+	                    mov          level_paddle_x, 20
+	                    mov          level_padhalfx, 10
+	                    call         BallPaddleCollision
+	                    mov          rectwidth, 20
+	                    mov          rectcolour, 15
+	                    call         DrawPaddle
+	;call         BallBoxFCollision
+	;call         DrawBoxF
+	                    cmp          bool_boxS, 1
+	                    jne          NoBoxS
+	;call         DrawBoxS
+	;call         BallBoxSCollision
+	NoBoxS:             
+	                    mov          rectcolour, 15
+	                    call         drawball
+	;call         DrawBox
+	;call         DrawBoarder
+	                    ret
 DrawScreen ENDP
-	
+
 Main proc far
 	; Initialize the data segment
-	                   MOV          AX, @DATA
-	                   MOV          DS, AX
+	                    MOV          AX, @DATA
+	                    MOV          DS, AX
+
+	; initinalize COM
+	                    initCom
 	
 	; start vga
-	                   mov          ah, 0
-	                   mov          al, 13h
-	                   INT          10h
+	                    mov          ah, 0
+	                    mov          al, 13h
+	                    INT          10h
 	
 	;intialize the game data
-	                   mov          CurrentLives, 3
-	                   mov          ScoreCounter, 0
-	                   mov          bool_boxs, 1
-	                   call         BoxCreator           	;intialize the boxs based on the level
+	                    mov          playerOneScore, 0
+	                    mov          playerTwoScore, 0
+
+	                    mov          bool_boxs, 1
+	                    call         BoxCreator              	;intialize the boxs based on the level
 	
 	;;CALL START MENU
-	startmenu:
-	                   call         start_menu
+	startmenu:          
+	                    call         start_menu
 	;;CALL LEVEL SELECT
-	                   call         level_select
+	                    call         level_select
+	                    call         BoxCreator              	;intialize the boxs based on the level
 	;;START GAME
-	startgame:
-	                   call         gameBoarder
+	startgame:          
+	;    call         gameBoarder
+	                    call         DrawLevelBorder
+
 
 	
 	;;GAME INNER LOOP
-	gameLoop:
-	                   call		 	DrawScreen
+	gameLoop:           
+	                    call         DrawScreen
 
-					   mov			ah, 0Ch
-					   int			21h
-					   call			delay
+	                    mov          ah, 0Ch
+	                    int          21h
+	                    call         delay
 
-					   xor 			ax, ax
-	                   xor          bx, bx
-	                   xor          cx, cx
-	                   xor          dx, dx
+	                    xor          ax, ax
+	                    xor          bx, bx
+	                    xor          cx, cx
+	                    xor          dx, dx
 
-					   mov          ah, 1
-					   int 			16h
-					   mov          bx, ax
-					   jz           gameLoop
-					   cmp 			bh, 4Bh
-					   jne			notleft
-					   call			moveLeft
-	notleft:
-					   cmp 			bh, 4Dh
-					   jne			notright
-					   call			moveRight
-	notright:
-					   cmp 			bl, 27
-					   je			startmenu
-					   cmp 			bl, 8
-					   je			startmenu
-					   jmp			gameLoop
+	                    mov          ah, 1
+	                    int          16h
+	                    mov          bx, ax
+	                    jz           gameLoop
+	                    cmp          bh, 4Bh
+	                    jne          notleft
+	                    call         moveLeft
+	notleft:            
+	                    cmp          bh, 4Dh
+	                    jne          notright
+	                    call         moveRight
+	notright:           
+	                    cmp          bl, 27
+	                    je           startmenu
+	                    cmp          bl, 8
+	                    je           startmenu
+	                    jmp          gameLoop
 	
 	;;CHECK WIN
 	
@@ -608,8 +785,8 @@ Main proc far
 	;;RESTART GAME
 	
 	;;QUIT GAME
-					   SetCursorPos 18, 1
-	                   mov          ah, 4Ch
-	                   int          21h                  	;exit
+	                    SetCursorPos 18, 1
+	                    mov          ah, 4Ch
+	                    int          21h                     	;exit
 Main endp
 END Main
