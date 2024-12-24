@@ -47,7 +47,7 @@ include     macros.inc      ; general macros
 	Level_Selector    dw  1
 
 	start_menu_option db  1
-	space db  ' $'
+	space             db  ' $'
 	string_start_game db  'START GAME$'
 	string_chat       db  'CHAT$'
 	string_exit_game  db  'EXIT GAME$'
@@ -479,18 +479,18 @@ start_menu proc
 	                       mov          ah, 1
 	                       int          16h
 	                       mov          bx, ax
-						   jnz		  firstcmp
+	                       jnz          firstcmp
 
 	                       mov          dx, 3FDH
 	                       in           al, dx
 	                       and          al, 1
 	                       jz           kbloop
-						   mov dx, 03F8H
-    					in  al, dx
-						mov bl, al
-						mov bh,0
-						jmp sendcmp
-	firstcmp:
+	                       mov          dx, 03F8H
+	                       in           al, dx
+	                       mov          bl, al
+	                       mov          bh,0
+	                       jmp          sendcmp
+	firstcmp:              
 	                       cmp          bh, 48h
 	                       je           moveup
 	                       cmp          bh, 50h
@@ -518,20 +518,20 @@ start_menu proc
 	weexit:                jmp          exit
 	;-------------------------------------------
 						   
-	sendcmp:
+	sendcmp:               
 	                       cmp          bl,'1'
 	                       jne          nxtcmp2send
 	                       jmp          stgmsend
-	nxtcmp2send:               
+	nxtcmp2send:           
 	                       cmp          bl,'2'
 	                       jne          nxtcmp3send
 	                       jmp          chattingsend
-	nxtcmp3send:               
+	nxtcmp3send:           
 	                       cmp          bl,'3'
-	                       je          exitsendhelp
+	                       je           exitsendhelp
 	                       jmp          kbloop
 	;-------------------------------------
-	exitsendhelp:           jmp          exitsend
+	exitsendhelp:          jmp          exitsend
 	;-------------------------------------
 	moveup:                
 	                       mov          rectcolour, 0           	; erase ball
@@ -579,25 +579,25 @@ start_menu proc
 	                       je           chatting
 	                       jmp          exit
 	chatting:              
-							mov dx, 3F8H
-    					mov al, '2'
-    					out dx, al
-	chattingsend:
+	                       mov          dx, 3F8H
+	                       mov          al, '2'
+	                       out          dx, al
+	chattingsend:          
 	                       call         CHAT
-						   jmp ToMenu
+	                       jmp          ToMenu
 	exit:                  
-						mov dx, 3F8H
-    					mov al, '3'
-    					out dx, al
-	exitsend:
+	                       mov          dx, 3F8H
+	                       mov          al, '3'
+	                       out          dx, al
+	exitsend:              
 	                       SetCursorPos 18, 1
 	                       mov          ah, 4Ch
 	                       int          21h                     	;exit
 	stgm:                  
-						mov dx, 3F8H
-    					mov al, '1'
-    					out dx, al
-	stgmsend:
+	                       mov          dx, 3F8H
+	                       mov          al, '1'
+	                       out          dx, al
+	stgmsend:              
 	                       ret
 start_menu endp
 DrawLevelBorder proc far
@@ -882,18 +882,18 @@ level_select proc
 	                       mov          dx, 3FDH
 	                       in           al, dx
 	                       and          al, 1
-						   jz		   again_and_again
+	                       jz           again_and_again
 	                       mov          dx, 03F8H
 	                       in           al, dx
 	                       mov          bl, al
 	                       mov          bh, 0
 	                       jmp          recievecmp
-	ignorerecieve:
-						   mov dx, 03F8H
-						   mov al, bl
-						   out dx, al
+	ignorerecieve:         
+	                       mov          dx, 03F8H
+	                       mov          al, bl
+	                       out          dx, al
 
-	recievecmp:
+	recievecmp:            
 	                       cmp          bl, '1'
 	                       je           set_level_1
 	                       cmp          bl, '2'
@@ -906,7 +906,7 @@ level_select proc
 	                       je           gostartmenu
 	                       cmp          bl, 27
 	                       je           gostartmenu
-						   jmp again_and_again
+	                       jmp          again_and_again
 
 	set_level_1:           
 	                       mov          Level_Selector, 1
@@ -1035,7 +1035,7 @@ Main proc far
 	startmenu:             
 	                       call         start_menu
 	;;CALL LEVEL SELECT
-							mov          ah, 0Ch
+	                       mov          ah, 0Ch
 	                       int          21h                     	;clear keyboard buffer
 	                       call         level_select
 	                       call         BoxCreator              	;intialize the boxs based on the level
@@ -1166,7 +1166,7 @@ winscreen endp
 	;-------------------------------------------
 
 CHAT PROC
-	push         ax
+	                       push         ax
 	                       push         bx
 	                       push         cx
 	                       push         dx
@@ -1176,7 +1176,7 @@ CHAT PROC
 
 	                       mov          ax , 0003h
 	                       int          10h
-						   mov          ah, 0Ch
+	                       mov          ah, 0Ch
 	                       int          21h                     	;clear keyboard buffer
     
 	; initinalize COM
@@ -1188,9 +1188,9 @@ CHAT PROC
 
 	;set the cursor
 	                       setCursorPos 0Bh, 0h
-	                    ;    mov          ah, 01h
-	                    ;    mov          ch, 20h
-	                    ;    int          10h
+	;    mov          ah, 01h
+	;    mov          ch, 20h
+	;    int          10h
 
 	detect:                
 	                       mov          ah, 01h
@@ -1298,7 +1298,7 @@ CHAT PROC
 	                       pop          cx
 	                       pop          bx
 	                       pop          ax
-	                       ret     
+	                       ret
 CHAT ENDP
 	
 END Main
