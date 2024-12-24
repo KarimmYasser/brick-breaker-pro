@@ -78,6 +78,7 @@ include     macros.inc      ; general macros
 	bool_boxs         dw  1
 	BoxesExist        dw  1
 	Bool_Box          dw  20 dup(1)
+	brickExists       dw  1                            	; boolean to move the value of function checkBrickExists
 	
 .CODE
 
@@ -729,7 +730,7 @@ level_select proc
 	                        int          21h
 	                        SetCursorPos 4, 7
 
-	                        lea          dx,levelnum_string
+	                        lea          dx, levelnum_string
 	                        mov          ah,09h
 	                        int          21h
 
@@ -738,7 +739,7 @@ level_select proc
 
 	                        SetCursorPos 12, 6
 
-	                        lea          dx,level_string
+	                        lea          dx, level_string
 	                        mov          ah,09h
 	                        int          21h
 
@@ -898,18 +899,16 @@ CheckBallBrickCollision proc
 	                        mov          cx, bricks_no
 	                        mov          bx, 0
 
-	; loop on all bricks and for each brick check if the ball collide with it or not
+	; loop on all bricks and for each brick check if the ball collides with it or not
 	CollisionLoop:          
-	                        push         si                        	; save current value of si
-	                        mov          si, bx                    	; move counter to si --> index
-
-	                        cmp          Bool_Box[si], 0
-	                        jg           check_start
-	                        pop          si                        	; restore original value else keep it (x offse)
+	                        call         checkBrickExist
+	                        cmp          brickExists, 0
+	                        
+	; pop          si                        	; restore original value else keep it (x offse)
 	                        je           next_iteration
 	
 	check_start:            
-	                        pop          si
+	; pop          si
 
 	; check bottom boundary
 	; check lower bound
@@ -945,7 +944,9 @@ CheckBallBrickCollision proc
 
 	                        pop          cx
 	                        pop          bx
+
 	                        mov          VertBall, 0               	; move down
+	                        jmp          next_iteration
 	; mov          HorzBall, 1
 
 	; check top for collision --> ball_y + ball_size >= bricky
@@ -993,6 +994,21 @@ HandleCollision PROC
 	                        pop          si
 	                        ret
 HandleCollision ENDP
+
+checkBrickExist PROC
+	                        push         si
+	                        mov          si, bx
+	                        cmp          Bool_Box[si], 0
+	                        je           skipBrick
+	                        
+	                        mov          brickExists, 1
+	                        jmp          returnLabel
+	skipBrick:              
+	                        mov          brickExists, 0
+	returnLabel:            
+	                        pop          si
+	                        ret
+checkBrickExist ENDP
 
 Main proc far
 	; Initialize the data segment
