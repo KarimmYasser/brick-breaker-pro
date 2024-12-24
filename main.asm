@@ -964,17 +964,17 @@ CheckBallBrickCollision proc
 
 	                        mov          ax, [si]
 	                        sub          ax, ball_size
+
 	                        cmp          ball_x, ax
 	                        jl           horizontal_check
 
 	                        add          ax, 2
-
 	                        cmp          ball_x, ax
 	                        jg           horizontal_check
 
 	                        call         HandleCollision
 
-	                        mov          VertBall, 1
+	                        mov          HorzBall, 1
 
 	horizontal_check:       
 	                        mov          ax, [si]
