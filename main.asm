@@ -18,8 +18,8 @@ include     macros.inc      ; general macros
 	ball_y            dw  100d
 	ball_size         dw  6
 
-	VertBall          dw  0                                                                                                 	; the direction of the ball in the vertical direction
-	HorzBall          dw  0                                                                                                 	; the direction of the ball in the horizontal direction
+	VertBall          dw  0                            	; the direction of the ball in the vertical direction
+	HorzBall          dw  0                            	; the direction of the ball in the horizontal direction
 	
 	;-------------- For Chat
 	var               db  ?
@@ -33,11 +33,11 @@ include     macros.inc      ; general macros
 	ScoreName         db  "Score: $"
 	LevelName         db  "Level: $"
 
-	Paddle_x          dw  50                                                                                                	; start x position for paddle
-	Paddle_y          dw  160                                                                                               	; start y position for paddle
+	Paddle_x          dw  50                           	; start x position for paddle
+	Paddle_y          dw  160                          	; start y position for paddle
 	paddle_x_half     dw  0
 
-	level_paddle_x    dw  30                                                                                                	; paddle width - changes according to level chosen
+	level_paddle_x    dw  30                           	; paddle width - changes according to level chosen
 	level_padhalfx    dw  15
 
 	paddleSpeed       equ 7
@@ -58,17 +58,22 @@ include     macros.inc      ; general macros
 
 
 	;----------------------- bricks data
-	x                 dw  11h                                                                                               	; brick x coordinate
-	y                 dw  10h                                                                                               	; brick y coordinate
+	x                 dw  11h                          	; brick x coordinate
+	y                 dw  10h                          	; brick y coordinate
 	brick_width       dw  18h
 	brick_height      dw  08h
 
-	starting_x_left   dw  11h, 2Ch, 47h, 62h, 7Dh, 11h, 2Ch, 47h, 62h, 7Dh, 11h, 2Ch, 47h, 62h, 7Dh, 11h, 2Ch, 47h, 62h, 7Dh	; 20 bricks
-	starting_y        dw  10h, 10h, 10h, 10h, 10h, 1Bh, 1Bh, 1Bh, 1Bh, 1Bh, 26h, 26h, 26h, 26h, 26h, 31h, 31h, 31h, 31h, 31h	; 20 bricks
+	starting_x_left   dw  2Ch, 47h, 62h
+	; 7Dh, 11h, 2Ch, 47h, 62h, 7Dh, 11h, 2Ch, 47h, 62h, 7Dh, 11h, 2Ch, 47h, 62h, 7Dh	; 20 bricks
+
+	; 17, 44, 71, 98, 125 (3 pixels gap)
 	
-	bricks_no         dw  20
+	starting_y        dw  26h, 26h, 26h
+	;  1Bh, 1Bh, 1Bh, 1Bh, 1Bh, 26h, 26h, 26h, 26h, 26h, 31h, 31h, 31h, 31h, 31h	; 20 bricks
+	
+	bricks_no         dw  3
 	color             db  50h
-	colors            db  59h, 56h, 50h                                                                                     	; init value
+	colors            db  59h, 56h, 50h                	; init value
 	
 	bool_boxs         dw  1
 	BoxesExist        dw  1
@@ -655,7 +660,7 @@ DrawAllBricks PROC
 	                        mov          ax, [si]
 	                        cmp          ax, 0
 	                        mov          color, 00h
-	; je           draw
+	                        je           draw
 
 	                        cmp          ax, 1
 	                        mov          color, 59h
@@ -901,97 +906,69 @@ CheckBallBrickCollision proc
 	                        cmp          Bool_Box[si], 0
 	                        jg           check_start
 	                        pop          si                        	; restore original value else keep it (x offse)
-	                        je           skip
+	                        je           next_iteration
 	
 	check_start:            
 	                        pop          si
-	                        mov          ax, [si]
-	                        sub          ax, ball_size             	; left boundary of brick
 
-	                        mov          dx, [si]
-	                        add          dx, brick_width           	; right boundary of brick
-
-	                        cmp          ball_x, ax
-	                        jl           next_check
-
-	                        cmp          ball_x, dx
-	                        jg           next_check
-
-	                        mov          ax, [di]
-	                        sub          ax, brick_height
-	; dec          ax
-
-	                        cmp          ball_y, ax
-	                        jl           vertical_check
-	                        add          ax, 2
-
-	                        cmp          ball_y, ax
-	                        jg           vertical_check
-
-	                        call         HandleCollision
-
-	                        mov          VertBall, 1
-
-	vertical_check:         
-	                        mov          ax, [di]
+	; check bottom boundary
+	; check lower bound
+	check_bottom:           
+	                        mov          ax, [di]                  	; brick_y
 	                        add          ax, brick_height
-
+	                        add          ax, 1
 	                        cmp          ball_y, ax
-	                        jl           next_check
+	                        jg           check_top
 
-	                        add          ax, 2
-	                        cmp          ball_y, ax
-	                        jg           next_check
+	; check which brick was hit from range
+	                        push         bx
+	                        push         cx
 
-	                        call         HandleCollision
-
-	                        mov          VertBall, 0
-	
-	skip:                   jmp          next_iteration
-	cont:                   jmp          CollisionLoop
-
-	next_check:             
-	                        mov          ax, [di]
-	                        sub          ax, ball_size
-	                        mov          dx, [di]
-	                        add          dx, brick_height
-
-	                        cmp          ball_y, ax
-	                        jl           next_iteration
-
-	                        cmp          ball_y , dx
-	                        jg           next_iteration
-
-	                        mov          ax, [si]
-	                        sub          ax, ball_size
-
-	                        cmp          ball_x, ax
-	                        jl           horizontal_check
-
-	                        add          ax, 2
-	                        cmp          ball_x, ax
-	                        jg           horizontal_check
-
-	                        call         HandleCollision
-
-	                        mov          HorzBall, 1
-
-	horizontal_check:       
-	                        mov          ax, [si]
+	                        mov          bx, 0
+	                        mov          cx, bricks_no
+	find_brick:             
+	                        mov          ax, ball_x
+	                        cmp          ax, starting_x_left[bx]
+	                        jl           skip
+	; check right boundary
+	                        mov          ax,  starting_x_left[bx]
 	                        add          ax, brick_width
+	                        cmp          ball_x, ax
+	                        jg           skip
+	                        jmp          collision
+	skip:                   
+	                        add          bx, 2
+	                        loop         find_brick
+
+	collision:              
+	; call         HandleCollision
+
+	                        pop          cx
+	                        pop          bx
+	                        mov          VertBall, 0               	; move down
+	; mov          HorzBall, 1
+
+	; check top for collision --> ball_y + ball_size >= bricky
+	check_top:              
+	                        mov          ax, ball_y
 	                        add          ax, ball_size
-							
-	                        cmp          ball_x, ax
-	                        jl           next_iteration
+	                        add          ax, 1                     	; extra
+	                        cmp          ax, [di]
+	                        jl           check_left
 
-	                        add          ax, 2                     	; extra two pixels coming from ball
-	                        cmp          ball_x, ax
-	                        jg           next_iteration
+	; check left and right boundary of each brick to know which one same way as we did in bottom
 
-	                        call         HandleCollision
+	; second check collision from left ball_x + ball_size >= brick_x
+	check_left:             
+	                        mov          ax, ball_x
+	                        add          ax, ball_size
+	                        cmp          ax, [si]
+	                        jl           check_right
 
-	                        mov          HorzBall, 0
+	; find which brick vertically
 
+
+	check_right:            
 	next_iteration:         
 	                        add          si, 2
 	                        add          di, 2
@@ -999,7 +976,7 @@ CheckBallBrickCollision proc
 
 	                        dec          cx
 	                        cmp          cx, 0
-	                        jne          cont
+	                        jne          CollisionLoop
 
 	                        ret
 CheckBallBrickCollision endp
@@ -1007,7 +984,7 @@ CheckBallBrickCollision endp
 HandleCollision PROC
 	                        push         si
 	                        mov          si, bx
-	                        sub          Bool_Box[si], 1
+	                        dec          Bool_Box[si]
 	                        pop          si
 	                        ret
 HandleCollision ENDP
