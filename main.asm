@@ -807,9 +807,9 @@ level_select endp
 	gostartmenu:            jmp          startmenu
 DrawScreen PROC
 	;call         CheckBox
+	                        call         DrawAllBricks
 	                        mov          rectcolour, 0             	;draw ball black
 	                        call         drawball
-	                        call         DrawAllBricks
 	                        call         MoveBall
 	                        call         CheckBallWallCollision
 	                        call         CheckBallBrickCollision
@@ -941,7 +941,7 @@ CheckBallBrickCollision proc
 	                        loop         find_brick
 
 	collision:              
-	; call         HandleCollision
+	                        call         HandleCollision           	; check
 
 	                        pop          cx
 	                        pop          bx
@@ -984,7 +984,12 @@ CheckBallBrickCollision endp
 HandleCollision PROC
 	                        push         si
 	                        mov          si, bx
+
+	                        cmp          Bool_Box[si], 0
+	                        je           noBrick
+	                        
 	                        dec          Bool_Box[si]
+	noBrick:                
 	                        pop          si
 	                        ret
 HandleCollision ENDP
