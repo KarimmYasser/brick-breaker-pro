@@ -15,7 +15,7 @@ include     macros.inc      ; general macros
 	playerTwoScore    db  0
 
 	ball_x            dw  100
-	ball_y            dw  100
+	ball_y            dw  100d
 	ball_size         dw  6
 
 	VertBall          dw  0                                                                                                 	; the direction of the ball in the vertical direction
@@ -800,7 +800,7 @@ level_select proc
 						   
 level_select endp
 	gostartmenu:            jmp          startmenu
-DrawScreen PROC 
+DrawScreen PROC
 	;call         CheckBox
 	                        mov          rectcolour, 0             	;draw ball black
 	                        call         drawball
@@ -906,10 +906,11 @@ CheckBallBrickCollision proc
 	check_start:            
 	                        pop          si
 	                        mov          ax, [si]
-	                        sub          ax, 5
-	                        mov          dx, [si]
+	                        sub          ax, ball_size             	; left boundary of brick
 
-	                        add          dx, brick_width
+	                        mov          dx, [si]
+	                        add          dx, brick_width           	; right boundary of brick
+
 	                        cmp          ball_x, ax
 	                        jl           next_check
 
@@ -918,6 +919,7 @@ CheckBallBrickCollision proc
 
 	                        mov          ax, [di]
 	                        sub          ax, brick_height
+	; dec          ax
 
 	                        cmp          ball_y, ax
 	                        jl           vertical_check
@@ -926,38 +928,34 @@ CheckBallBrickCollision proc
 	                        cmp          ball_y, ax
 	                        jg           vertical_check
 
-	                        push         si
-	                        mov          si, bx
-	                        sub          Bool_Box[si], 1
-	                        pop          si
+	                        call         HandleCollision
+
 	                        mov          VertBall, 1
-	                        call         DrawBoxBlack
 
 	vertical_check:         
 	                        mov          ax, [di]
-	                        add          ax, 9
+	                        add          ax, brick_height
 
 	                        cmp          ball_y, ax
 	                        jl           next_check
+
 	                        add          ax, 2
 	                        cmp          ball_y, ax
 	                        jg           next_check
 
-	                        push         si
-	                        mov          si, bx
-	                        sub          Bool_Box[si], 1
-	                        pop          si
+	                        call         HandleCollision
+
 	                        mov          VertBall, 0
-	                        call         DrawBoxBlack
 	
 	skip:                   jmp          next_iteration
 	cont:                   jmp          CollisionLoop
 
 	next_check:             
 	                        mov          ax, [di]
-	                        sub          ax, 5
+	                        sub          ax, ball_size
 	                        mov          dx, [di]
 	                        add          dx, brick_height
+
 	                        cmp          ball_y, ax
 	                        jl           next_iteration
 
@@ -965,7 +963,7 @@ CheckBallBrickCollision proc
 	                        jg           next_iteration
 
 	                        mov          ax, [si]
-	                        sub          ax, 5
+	                        sub          ax, ball_size
 	                        cmp          ball_x, ax
 	                        jl           horizontal_check
 
@@ -974,12 +972,9 @@ CheckBallBrickCollision proc
 	                        cmp          ball_x, ax
 	                        jg           horizontal_check
 
-	                        push         si
-	                        mov          si, bx
-	                        sub          Bool_Box[si], 1
-	                        pop          si
+	                        call         HandleCollision
+
 	                        mov          VertBall, 1
-	                        call         DrawBoxBlack
 
 	horizontal_check:       
 	                        mov          ax, [si]
@@ -988,16 +983,14 @@ CheckBallBrickCollision proc
 							
 	                        cmp          ball_x, ax
 	                        jl           next_iteration
-	                        add          ax, 2                     	; extra two pixels coming from ball
 
+	                        add          ax, 2                     	; extra two pixels coming from ball
 	                        cmp          ball_x, ax
 	                        jg           next_iteration
-	                        push         si
-	                        mov          si, bx
-	                        sub          Bool_Box[si], 1
-	                        pop          si
+
+	                        call         HandleCollision
+
 	                        mov          HorzBall, 0
-	                        call         DrawBoxBlack
 
 	next_iteration:         
 	                        add          si, 2
@@ -1011,22 +1004,13 @@ CheckBallBrickCollision proc
 	                        ret
 CheckBallBrickCollision endp
 
-
-DrawBoxBlack proc
-	                        push         ax
-	                        mov          rectcolour, 0
-	                        mov          ax, brick_width
-	                        mov          rectwidth, ax
-	                        mov          ax, brick_height
-	                        mov          rectheight, ax
-
-	                        mov          ax, [si]
-	                        mov          rect_x, ax
-	                        mov          ax, [di]
-	                        mov          rect_y, ax
-	                        pop          ax
-	                        call         DrawRectangle
-DrawBoxBlack endp
+HandleCollision PROC
+	                        push         si
+	                        mov          si, bx
+	                        sub          Bool_Box[si], 1
+	                        pop          si
+	                        ret
+HandleCollision ENDP
 
 Main proc far
 	; Initialize the data segment
@@ -1041,11 +1025,7 @@ Main proc far
 	                        mov          al, 13h
 	                        INT          10h
 	
-	;intialize the game data
-	                        mov          playerOneScore, 0
-	                        mov          playerTwoScore, 0
 
-	                        mov          bool_boxs, 1
 	                        call         BoxCreator                	;intialize the boxs based on the level
 	
 	;;CALL START MENU
@@ -1054,6 +1034,13 @@ Main proc far
 	;;CALL LEVEL SELECT
 	                        call         level_select
 	                        call         BoxCreator                	;intialize the boxs based on the level
+	;intialize the game data
+	                        mov          playerOneScore, 0
+	                        mov          playerTwoScore, 0
+
+	                        mov          bool_boxs, 1
+	                        mov          ball_x , 50
+	                        mov          ball_y, 70
 	;;START GAME
 	startgame:              
 	;    call         gameBoarder
