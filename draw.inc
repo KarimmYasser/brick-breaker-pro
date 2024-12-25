@@ -97,6 +97,28 @@ DrawPaddle PROC
 					   
 	                       ret
 DrawPaddle ENDP
+DrawPaddleBlack PROC
+						   mov          rectcolour, 0
+	                       mov          rectheight, 10
+					   
+	                       mov          si, oldPaddle_x
+	                       mov          rect_x, si
+	                       mov          si, oldPaddle_y
+	                       mov          rect_y, si
+	                       call         DrawRectangle
+	                       
+	;mov          rectcolour, 15
+	;    sub          rectwidth, 4
+	;    mov          si, Paddle_x
+	;    add          si, 2
+	;    mov          rect_x, si
+	;    mov          si, Paddle_y
+	;    mov          rect_y, si
+	;    call         DrawRectangle
+	;    add          rectwidth, 4
+					   
+	                       ret
+DrawPaddleBlack ENDP
 
 DrawPaddleRight PROC
 						   mov          rectcolour, 15

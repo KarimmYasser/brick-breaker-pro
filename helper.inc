@@ -22,10 +22,8 @@ BoxCreator ENDP
 
 
 moveLeft proc
-	                       mov          ax, level_paddle_x
-	                       mov          rectwidth, ax
-	                       mov          rectcolour, 0
-	                       call         DrawPaddle
+						   mov			ax, Paddle_x
+						   mov			oldPaddle_x, ax
 	                       cmp          Paddle_x, 22          	; left border boundary + speed
 	                       jle          endleft
 	                       sub          Paddle_x, paddleSpeed
@@ -36,10 +34,8 @@ moveLeft proc
 moveLeft endp
 
 moveRight proc
-	                       mov          rectcolour, 0
-	                       mov          ax, level_paddle_x
-	                       mov          rectwidth, ax
-	                       call         DrawPaddle
+						   mov			ax, Paddle_x
+						   mov			oldPaddle_x, ax
 	                       mov          ax, Paddle_x
 	                       add          ax, level_paddle_x
 	                       cmp          ax, 151               	; right border boundary - speed
@@ -54,10 +50,8 @@ moveRight proc
 moveRight endp
 
 moveCenter proc
-	                       mov          rectcolour, 0
-	                       mov          ax, level_paddle_x
-	                       mov          rectwidth, ax
-	                       call         DrawPaddle
+						   mov			ax, Paddle_x
+						   mov			oldPaddle_x, ax
 	                       mov          ax, Paddle_x
 	                       add          ax, level_paddle_x
 	                       cmp          ax, 151               	; right border boundary - speed
@@ -159,3 +153,74 @@ delayshort proc
 
 	                       ret
 delayshort ENDP
+
+
+CheckBox PROC
+	push ax
+	push bx
+	push cx
+	push dx
+	push bp
+	push si
+	push di
+	
+	mov cx, bricks_no
+	mov si, offset Bool_Box
+	
+	mov BoxesExist, 0
+	
+loopCB:
+	
+	mov ax, [si]
+	cmp ax , 0
+	je noBox
+	
+	mov BoxesExist, 1
+	
+noBox:
+	
+	add si, 2
+	
+	loop loopCB
+	
+	
+	cmp BoxesExist, 0
+    jne skip_level_check
+
+    cmp Level_Selector, 1
+    je level_1
+
+    cmp Level_Selector, 2
+    je level_2
+
+    cmp Level_Selector, 3
+    je level_3
+
+    jmp end_level_check
+
+level_1:
+    mov Level_Selector, 2
+	call BoxCreator
+    jmp startgame
+
+level_2:
+    mov Level_Selector, 3
+	call BoxCreator
+    jmp startgame
+
+level_3:
+    call winscreen
+    jmp startmenu
+
+skip_level_check:
+end_level_check:
+	
+	pop di
+	pop si
+	pop bp
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+	ret
+	CheckBox ENDP
