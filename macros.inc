@@ -43,7 +43,7 @@ InitCom MACRO
     out dx,al				;Out it
     ;Set LSB byte of the Baud Rate Divisor Latch register.
     mov dx,3f8h			
-    mov al,0ch			
+    mov al,01h			
     out dx,al
 
     ;Set MSB byte of the Baud Rate Divisor Latch register.

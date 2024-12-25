@@ -15,11 +15,13 @@ BoxCreator PROC
 	
 	                       ret
 BoxCreator ENDP
+
+
+
 moveLeft proc
 	                       mov          ax, level_paddle_x
 	                       mov          rectwidth, ax
 	                       mov          rectcolour, 0
-	                       call         WAIT_FOR_VSYNC
 	                       call         DrawPaddle
 	                       cmp          Paddle_x, 22          	; left border boundary + speed
 	                       jle          endleft
@@ -34,7 +36,6 @@ moveRight proc
 	                       mov          rectcolour, 0
 	                       mov          ax, level_paddle_x
 	                       mov          rectwidth, ax
-	                       call         WAIT_FOR_VSYNC
 	                       call         DrawPaddle
 	                       mov          ax, Paddle_x
 	                       add          ax, level_paddle_x
@@ -48,6 +49,24 @@ moveRight proc
 	                       mov          Paddle_x, ax
 	                       ret
 moveRight endp
+
+moveCenter proc
+	                       mov          rectcolour, 0
+	                       mov          ax, level_paddle_x
+	                       mov          rectwidth, ax
+	                       call         DrawPaddle
+	                       mov          ax, Paddle_x
+	                       add          ax, level_paddle_x
+	                       cmp          ax, 151               	; right border boundary - speed
+	                       jge          endcenter
+	                       add          Paddle_x, 0
+	                       ret
+	endcenter:              
+	                       mov          ax, 159               	; right border boundary
+	                       sub          ax, level_paddle_x
+	                       mov          Paddle_x, ax
+	                       ret
+moveCenter endp
 
 WAIT_FOR_VSYNC PROC NEAR
 	                       push         ax
@@ -72,7 +91,7 @@ delay proc
 	                       push         cx
 	                       push         dx
 
-	                       mov          cx, 10000
+	                       mov          cx, 0FFFFh
 
 	                       mov          ax, Level_Selector
 	                       cmp          ax, 1
@@ -84,7 +103,7 @@ delay proc
 	                       jmp          end_set_delay
 
 	level1d:               
-	                       mov          bx, 10
+	                       mov          bx, 15
 	                       jmp          end_set_delay
 
 	level2d:               
@@ -112,3 +131,28 @@ delay proc
 
 	                       ret
 delay ENDP
+delayshort proc
+	                       push         ax
+	                       push         bx
+	                       push         cx
+	                       push         dx
+
+	                       mov          cx, 10000
+
+	                       mov          bx, 10
+	mydelay2:               
+	                       push         cx
+	                       mov          cx, bx
+	mydelay12:              
+	                       dec          cx
+	                       jnz          mydelay12
+	                       pop          cx
+	                       loop         mydelay2
+
+	                       pop          dx
+	                       pop          cx
+	                       pop          bx
+	                       pop          ax
+
+	                       ret
+delayshort ENDP

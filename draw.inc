@@ -50,6 +50,31 @@ drawball proc
 
 	                       ret
 drawball endp
+drawballRight proc
+	                       mov          ax, ball_size
+	                       mov          rectwidth, ax
+	                       mov          rectheight, ax
+
+	                       mov          ax, ball_x_right
+	                       mov          rect_x, ax
+	                       mov          ax, ball_y_right
+	                       mov          rect_y, ax
+	                       call         DrawRectangle
+
+	                       sub          rectwidth, 2
+	                       add          rectheight, 2
+	                       add          rect_x, 1
+	                       sub          rect_y, 1
+	                       call         DrawRectangle
+
+	                       add          rectwidth, 4
+	                       sub          rectheight, 4
+	                       sub          rect_x, 2
+	                       add          rect_y, 2
+	                       call         DrawRectangle
+
+	                       ret
+drawballRight endp
 
 DrawPaddle PROC
 	                       mov          rectheight, 10
@@ -73,6 +98,40 @@ DrawPaddle PROC
 	                       ret
 DrawPaddle ENDP
 
+DrawPaddleRight PROC
+						   mov          rectcolour, 15
+	                       mov          rectheight, 10
+					   
+	                       mov          si, Paddle_x_right
+	                       mov          rect_x, si
+	                       mov          si, Paddle_y_right
+	                       mov          rect_y, si
+	                       call         DrawRectangle
+	                       
+	;mov          rectcolour, 15
+	;    sub          rectwidth, 4
+	;    mov          si, Paddle_x
+	;    add          si, 2
+	;    mov          rect_x, si
+	;    mov          si, Paddle_y
+	;    mov          rect_y, si
+	;    call         DrawRectangle
+	;    add          rectwidth, 4
+					   
+	                       ret
+DrawPaddleRight ENDP
+
+DrawPaddleRightBlack PROC
+						   mov          rectcolour, 0
+	                       mov          rectheight, 10
+					   
+	                       mov          si, paddle_x_old
+	                       mov          rect_x, si
+	                       mov          si, Paddle_y_right
+	                       mov          rect_y, si
+	                       call         DrawRectangle
+	                       ret
+DrawPaddleRightBlack ENDP
 
 DrawDivider proc
 	                       mov          rectcolour, 3           	; cyan color
@@ -188,7 +247,7 @@ DrawAllBricks ENDP
 DrawAllBricksRight PROC
 	                       mov          di, 0
 	                       mov          cx, bricks_no
-	                       mov          si, offset Bool_Box
+	                       mov          si, offset Bool_Box_left
 	
 	drawLoopRight:         
 	                       mov          ax, [si]

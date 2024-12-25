@@ -2,10 +2,14 @@ DrawScreen PROC
 	;call         CheckBox
 	                       mov          rectcolour, 0         	;draw ball black
 	                       call         drawball
+	                       call         drawballRight
 	                       call         MoveBall
+	                       call         MoveBallRight
 	                       call         CheckBallWallCollision
+	                       call         CheckBallWallCollisionRight
 	                       mov          rectcolour, 15
 	                       call         drawball
+	                       call         drawballRight
 	;call         BallBoxCollision
 	                       cmp          Level_Selector, 1
 	                       je           level1
@@ -17,9 +21,12 @@ DrawScreen PROC
 	                       mov          level_paddle_x, 30
 	                       mov          level_padhalfx, 15
 	                       call         BallPaddleCollision
+	                       call         BallPaddleCollisionRight
 	                       mov          rectwidth, 30
 	                       mov          rectcolour, 15
 	                       call         DrawPaddle
+						   call 	    DrawPaddleRightBlack
+	                       call         DrawPaddleRight
 	                       jmp          NoBoxS
 
 
@@ -30,6 +37,8 @@ DrawScreen PROC
 	                       mov          rectwidth, 20
 	                       mov          rectcolour, 15
 	                       call         DrawPaddle
+						   call 	    DrawPaddleRightBlack
+	                       call         DrawPaddleRight
 	                       jmp          NoBoxS
 	level3:                
 	                       mov          level_paddle_x, 20
@@ -38,6 +47,8 @@ DrawScreen PROC
 	                       mov          rectwidth, 20
 	                       mov          rectcolour, 15
 	                       call         DrawPaddle
+						   call 	    DrawPaddleRightBlack
+	                       call         DrawPaddleRight
 	;call         BallBoxFCollision
 	;call         DrawBoxF
 	                       cmp          bool_boxS, 1
