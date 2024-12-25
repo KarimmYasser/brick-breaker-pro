@@ -523,10 +523,63 @@ CheckCollision PROC
 	                            ret
 checkCollision ENDP
 
+CheckBallBrickCollision2 proc
+	                            mov          si, 0
+	                            mov          cx, bricks_no
+	collisionLoop2:             
+	                            cmp          Bool_Box_left[si], 0
+	                            je           nextIteration2
+
+	                            call         checkCollision2
+	nextIteration2:             
+	                            add          si, 2
+	                            dec          cx
+	                            cmp          cx, 0
+	                            jg           collisionLoop2
+			
+	                            ret
+
+CheckBallBrickCollision2 endp
+
+CheckCollision2 PROC
+	                            push         ax
+	; condition: brick_y + brick_height >= ball_y
+	check_bottom2:              
+	                            mov          ax, starting_y[si]
+	                            add          ax, brick_height
+	                            add          ax, 1
+	                            cmp          ball_y_right, ax
+	                            jg           check_collision_end2
+
+	; check if collision is within the current brick width
+	; condition ball_x > brick_x and ball_x < brick_x + brick_width
+
+	                            mov          ax, ball_x_right
+	                            cmp          ax, starting_x_right[si]
+	                            jl           check_collision_end2
+
+	                            mov          ax,  starting_x_right[si]
+	                            add          ax, brick_width
+	                            cmp          ball_x_right, ax
+	                            jg           check_collision_end2
+
+	                            call         HandleCollision2
+	                            mov          VertBallRight, 0              	; move down
+	                            jmp          check_collision_end2
+
+	check_collision_end2:       
+	                            pop          ax
+	                            ret
+checkCollision2 ENDP
+
 HandleCollision PROC
 	                            dec          Bool_Box[si]
 	                            ret
 HandleCollision ENDP
+HandleCollision2 PROC
+	                            dec          Bool_Box_left[si]
+	                            ret
+HandleCollision2 ENDP
 
 Main proc far
 	; Initialize the data segment

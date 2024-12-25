@@ -1,6 +1,7 @@
 DrawScreen PROC
 	;call         CheckBox
 							call         CheckBallBrickCollision
+							call         CheckBallBrickCollision2
 	                       call         DrawAllBricks
 	                       call         DrawAllBricksRight
 	                       mov          rectcolour, 0         	;draw ball black
@@ -26,9 +27,10 @@ DrawScreen PROC
 	                       call         BallPaddleCollision
 	                       call         BallPaddleCollisionRight
 	                       mov          rectwidth, 30
+	                       call         DrawPaddleBlack
 	                       mov          rectcolour, 15
 	                       call         DrawPaddle
-						   					 call 	      DrawPaddleRightBlack
+						   call 	    DrawPaddleRightBlack
 	                       call         DrawPaddleRight
 	                       jmp          NoBoxS
 
@@ -38,9 +40,10 @@ DrawScreen PROC
 	                       mov          level_padhalfx, 10
 	                       call         BallPaddleCollision
 	                       mov          rectwidth, 20
+	                       call         DrawPaddleBlack
 	                       mov          rectcolour, 15
 	                       call         DrawPaddle
-						             call 	      DrawPaddleRightBlack
+						   call 	    DrawPaddleRightBlack
 	                       call         DrawPaddleRight
 	                       jmp          NoBoxS
 	level3:                
@@ -48,9 +51,10 @@ DrawScreen PROC
 	                       mov          level_padhalfx, 10
 	                       call         BallPaddleCollision
 	                       mov          rectwidth, 20
+	                       call         DrawPaddleBlack
 	                       mov          rectcolour, 15
 	                       call         DrawPaddle
-						            call 	        DrawPaddleRightBlack
+						   call 	    DrawPaddleRightBlack
 	                       call         DrawPaddleRight
 	;call         BallBoxFCollision
 	;call         DrawBoxF
