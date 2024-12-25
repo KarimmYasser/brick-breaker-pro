@@ -479,7 +479,7 @@ CheckBallBrickCollision proc
 	                            mov          si, 0
 	                            mov          cx, bricks_no
 	collisionLoop:              
-	                            cmp          Bool_Box[si], 0
+	                            cmp          Bool_Box_left[si], 0
 	                            je           nextIteration
 
 	                            call         checkCollision
@@ -490,7 +490,26 @@ CheckBallBrickCollision proc
 	                            jg           collisionLoop
 			
 	                            ret
+
 CheckBallBrickCollision endp
+
+CheckBallBrickCollision2 proc
+	                            mov          si, 0
+	                            mov          cx, bricks_no
+	collisionLoop:              
+	                            cmp          Bool_Box_left[si], 0
+	                            je           nextIteration
+
+	                            call         checkCollision
+	nextIteration:              
+	                            add          si, 2
+	                            dec          cx
+	                            cmp          cx, 0
+	                            jg           collisionLoop
+			
+	                            ret
+
+CheckBallBrickCollision2 endp
 
 CheckCollision PROC
 	                            push         ax

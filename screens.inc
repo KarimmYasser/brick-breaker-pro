@@ -1,6 +1,7 @@
 DrawScreen PROC
 	;call         CheckBox
-							call         CheckBallBrickCollision
+												 call         CheckBallBrickCollision
+												 call 				CheckBallBrickCollision2
 	                       call         DrawAllBricks
 	                       call         DrawAllBricksRight
 	                       mov          rectcolour, 0         	;draw ball black
