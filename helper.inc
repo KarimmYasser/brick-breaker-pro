@@ -1,6 +1,7 @@
 BoxCreator PROC
 	                       mov          cx, bricks_no
 	                       mov          si, offset Bool_Box
+												 mov          di, offset Bool_Box_left
 	
 	                       mov          BoxesExist, 1
 	                       mov          ax, Level_Selector
@@ -8,8 +9,10 @@ BoxCreator PROC
 	loopBC:                
 	
 	                       mov          [si], ax
+												 mov          [di], ax
 	
 	                       add          si, 2
+												 add          di, 2
 	
 	                       loop         loopBC
 	

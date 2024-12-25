@@ -156,23 +156,26 @@ draw_start_menu endp
 start_menu proc
 	ToMenu:                     
 	                            mov          ah, 0h
-	                            mov          al, 13h                	;320x200
+	                            mov          al, 13h                 	;320x200
 	                            int          10h
 
 	                            call         boarder
 	                            call         draw_start_menu
+
 	                            mov          rectcolour,15          	;ball colour
 	                            mov          start_menu_option, 1
 	                            mov          ball_x, 84
 	                            mov          ball_y, 48
 	                            call         drawball               	;draw on selected option
+
 	                            xor          ax, ax
 	                            xor          bx, bx
 	                            xor          cx, cx
 	                            xor          dx, dx
 	kbloop:                     
 	                            mov          ah, 0Ch
-	                            int          21h                    	;clear keyboard buffer
+
+	                            int          21h                     	;clear keyboard buffer
 	                            call         delay
 
 	                            mov          ah, 1
@@ -233,7 +236,8 @@ start_menu proc
 	exitsendhelp:               jmp          exitsend
 	;-------------------------------------
 	moveup:                     
-	                            mov          rectcolour, 0          	; erase ball
+	                            mov          rectcolour, 0           	; erase ball
+
 	                            call         drawball
 	                            dec          start_menu_option
 	                            cmp          start_menu_option, 0
@@ -242,7 +246,8 @@ start_menu proc
 	                            jmp          calcOption
 
 	movedown:                   
-	                            mov          rectcolour, 0          	; erase ball
+	                            mov          rectcolour, 0           	; erase ball
+
 	                            call         drawball
 	                            inc          start_menu_option
 	                            cmp          start_menu_option, 4
@@ -291,7 +296,7 @@ start_menu proc
 	exitsend:                   
 	                            SetCursorPos 18, 1
 	                            mov          ah, 4Ch
-	                            int          21h                    	;exit
+	                            int          21h                     	;exit
 	stgm:                       
 	                            mov          dx, 3F8H
 	                            mov          al, '1'
@@ -307,7 +312,8 @@ BallPaddleCollision proc
 	                            mov          bx, Paddle_y
 	                            sub          bx, 10
 	                            mov          si, ball_x
-	                            add          si, 3                  	;half of ball width
+
+	                            add          si, 3                   	;half of ball width
 
 	                            cmp          si, ax
 	                            jl           NoCollision
@@ -360,6 +366,7 @@ CheckBallWallCollision proc
 
 	; Check collision with left boundary
 	check_left_bound:           
+
 	                            cmp          ball_x, 17             	; game border starts at 15
 	                            jg           check_right_bound      	; if greater than continue checking on the rest of boundaries
 	                            mov          HorzBall,1             	; reverse the direction to move right
@@ -396,7 +403,7 @@ BallPaddleCollisionRight proc
 	                            mov          bx, Paddle_y_right
 	                            sub          bx, 10
 	                            mov          si, ball_x_right
-	                            add          si, 3                  	;half of ball width
+	                            add          si, 3                   	;half of ball width
 
 	                            cmp          si, ax
 	                            jl           NoCollisionRight
@@ -449,34 +456,140 @@ CheckBallWallCollisionRight proc
 
 	; Check collision with left boundary
 	check_left_bound_right:     
-	                            cmp          ball_x_right, 0A3h     	; game border starts at 15
-	                            jg           check_right_bound_right	; if greater than continue checking on the rest of boundaries
-	                            mov          HorzBallRight,1        	; reverse the direction to move right
+	                            cmp          ball_x_right, 0A3h      	; game border starts at 15
+	                            jg           check_right_bound_right 	; if greater than continue checking on the rest of boundaries
+	                            mov          HorzBallRight,1         	; reverse the direction to move right
 	
 	; Check collision with right boundary
 	check_right_bound_right:    
-	                            mov          ax, 130h               	; divider line is the right boundary for game border
+	                            mov          ax, 130h                	; divider line is the right boundary for game border
 	                            sub          ax, ball_size
 	                            cmp          ball_x_right, ax
 	                            jl           check_upper_bound_right
-	                            mov          HorzBallRight,0        	; reverse the direction to move left
+	                            mov          HorzBallRight,0         	; reverse the direction to move left
 
 	; Check collision with top boundary
 	check_upper_bound_right:    
-	                            cmp          ball_y_right, 16       	; game border starts at 15
+	                            cmp          ball_y_right, 16        	; game border starts at 15
 	                            jg           check_lower_bound_right
-	                            mov          VertBallRight,0        	; reverse direction to move down
+	                            mov          VertBallRight,0         	; reverse direction to move down
 	; Check collision with bottom boundary
 	check_lower_bound_right:    
-	                            mov          ax, 168                	; game border lower bound height - ball size
+	                            mov          ax, 168                 	; game border lower bound height - ball size
 	                            sub          ax, ball_size
 	                            cmp          ball_y_right, ax
 	                            jl           end_check_right
-	                            mov          VertBallRight,1        	; reverse direction to move up
+	                            mov          VertBallRight,1         	; reverse direction to move up
+
 	end_check_right:            
 	                            ret
 	
 CheckBallWallCollisionRight endp
+CheckBallBrickCollision proc
+	                            mov          si, 0
+	                            mov          cx, bricks_no
+	collisionLoop:              
+	                            cmp          Bool_Box[si], 0
+	                            je           nextIteration
+
+	                            call         checkCollision
+	nextIteration:              
+	                            add          si, 2
+	                            dec          cx
+	                            cmp          cx, 0
+	                            jg           collisionLoop
+			
+	                            ret
+CheckBallBrickCollision endp
+
+CheckCollision PROC
+	                            push         ax
+	; condition: brick_y + brick_height >= ball_y
+	check_bottom:               
+	                            mov          ax, starting_y[si]
+	                            add          ax, brick_height
+	                            add          ax, 1
+	                            cmp          ball_y, ax
+	                            jg           check_collision_end
+
+	; check if collision is within the current brick width
+	; condition ball_x > brick_x and ball_x < brick_x + brick_width
+
+	                            mov          ax, ball_x
+	                            cmp          ax, starting_x_left[si]
+	                            jl           check_collision_end
+
+	                            mov          ax,  starting_x_left[si]
+	                            add          ax, brick_width
+	                            cmp          ball_x, ax
+	                            jg           check_collision_end
+
+	                            call         HandleCollision
+	                            mov          VertBall, 0             	; move down
+	                            jmp          check_collision_end
+
+	check_collision_end:        
+	                            pop          ax
+	                            ret
+checkCollision ENDP
+
+CheckBallBrickCollision2 proc
+	                            mov          si, 0
+	                            mov          cx, bricks_no
+	collisionLoop2:             
+	                            cmp          Bool_Box_left[si], 0
+	                            je           nextIteration2
+
+	                            call         checkCollision2
+	nextIteration2:             
+	                            add          si, 2
+	                            dec          cx
+	                            cmp          cx, 0
+	                            jg           collisionLoop2
+			
+	                            ret
+
+CheckBallBrickCollision2 endp
+
+CheckCollision2 PROC
+	                            push         ax
+	; condition: brick_y + brick_height >= ball_y
+	check_bottom2:              
+	                            mov          ax, starting_y[si]
+	                            add          ax, brick_height
+	                            add          ax, 1
+	                            cmp          ball_y_right, ax
+	                            jg           check_collision_end2
+
+	; check if collision is within the current brick width
+	; condition ball_x > brick_x and ball_x < brick_x + brick_width
+
+	                            mov          ax, ball_x_right
+	                            cmp          ax, starting_x_right[si]
+	                            jl           check_collision_end2
+
+	                            mov          ax,  starting_x_right[si]
+	                            add          ax, brick_width
+	                            cmp          ball_x_right, ax
+	                            jg           check_collision_end2
+
+	                            call         HandleCollision2
+	                            mov          VertBallRight, 0              	; move down
+	                            jmp          check_collision_end2
+
+	check_collision_end2:       
+	                            pop          ax
+	                            ret
+checkCollision2 ENDP
+
+HandleCollision PROC
+	                            dec          Bool_Box[si]
+	                            ret
+HandleCollision ENDP
+HandleCollision2 PROC
+	                            dec          Bool_Box_left[si]
+	                            ret
+HandleCollision2 ENDP
 
 Main proc far
 	; Initialize the data segment
@@ -502,22 +615,23 @@ Main proc far
 	                            mov          playerTwoScore, 0
 
 	                            mov          bool_boxs, 1
-	                            call         BoxCreator             	;intialize the boxs based on the level
+	                            call         BoxCreator              	;intialize the boxs based on the level
 	
 	;;CALL START MENU
 	startmenu:                  
 	                            call         start_menu
 	;;CALL LEVEL SELECT
 	                            mov          ah, 0Ch
-	                            int          21h                    	;clear keyboard buffer
+	                            int          21h                     	;clear keyboard buffer
 	                            call         level_select
-	                            call         BoxCreator             	;intialize the boxs based on the level
+	                            call         BoxCreator              	;intialize the boxs based on the level
 	;;START GAME
 	startgame:                  
 	;    call         gameBoarder
 	                            call         DrawLevelBorder
 
 	;;GAME INNER LOOP
+	                            mov          ball_y, 80
 	                            mov          ax,ball_x
 	                            add          ax, 92h
 	                            mov          ball_x_right,ax
@@ -594,6 +708,6 @@ Main proc far
 	;;QUIT GAME
 	                            SetCursorPos 18, 1
 	                            mov          ah, 4Ch
-	                            int          21h                    	;exit
+	                            int          21h                     	;exit
 Main endp
 END Main

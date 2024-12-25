@@ -238,6 +238,7 @@ DrawAllBricks PROC
 	                       mov          ax, [si]
 	                       cmp          ax, 0
 	                       mov          color, 00h
+												 je 					draw
 
 	                       cmp          ax, 1
 	                       mov          color, 59h
@@ -275,6 +276,8 @@ DrawAllBricksRight PROC
 	                       mov          ax, [si]
 	                       cmp          ax, 0
 	                       mov          color, 00h
+												 je 					draw
+
 
 	                       cmp          ax, 1
 	                       mov          color, 59h
