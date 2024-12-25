@@ -25,7 +25,7 @@ DrawScreen PROC
 	                       mov          rectwidth, 30
 	                       mov          rectcolour, 15
 	                       call         DrawPaddle
-						   call 	    DrawPaddleRightBlack
+						   					 call 	      DrawPaddleRightBlack
 	                       call         DrawPaddleRight
 	                       jmp          NoBoxS
 
@@ -37,7 +37,7 @@ DrawScreen PROC
 	                       mov          rectwidth, 20
 	                       mov          rectcolour, 15
 	                       call         DrawPaddle
-						   call 	    DrawPaddleRightBlack
+						             call 	      DrawPaddleRightBlack
 	                       call         DrawPaddleRight
 	                       jmp          NoBoxS
 	level3:                
@@ -47,7 +47,7 @@ DrawScreen PROC
 	                       mov          rectwidth, 20
 	                       mov          rectcolour, 15
 	                       call         DrawPaddle
-						   call 	    DrawPaddleRightBlack
+						            call 	        DrawPaddleRightBlack
 	                       call         DrawPaddleRight
 	;call         BallBoxFCollision
 	;call         DrawBoxF
@@ -58,6 +58,7 @@ DrawScreen PROC
 	NoBoxS:                
 	                       call         DrawAllBricks
 	                       call         DrawAllBricksRight
+												 call         CheckBallBrickCollision
 	;call         DrawBox
 	;call         DrawBoarder
 	                       ret
