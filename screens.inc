@@ -27,6 +27,7 @@ DrawScreen PROC
 	                       call         BallPaddleCollision
 	                       call         BallPaddleCollisionRight
 	                       mov          rectwidth, 30
+	                       call         DrawPaddleBlack
 	                       mov          rectcolour, 15
 	                       call         DrawPaddle
 						   					 call 	      DrawPaddleRightBlack
@@ -39,6 +40,7 @@ DrawScreen PROC
 	                       mov          level_padhalfx, 10
 	                       call         BallPaddleCollision
 	                       mov          rectwidth, 20
+	                       call         DrawPaddleBlack
 	                       mov          rectcolour, 15
 	                       call         DrawPaddle
 						             call 	      DrawPaddleRightBlack
@@ -49,6 +51,7 @@ DrawScreen PROC
 	                       mov          level_padhalfx, 10
 	                       call         BallPaddleCollision
 	                       mov          rectwidth, 20
+	                       call         DrawPaddleBlack
 	                       mov          rectcolour, 15
 	                       call         DrawPaddle
 						            call 	        DrawPaddleRightBlack

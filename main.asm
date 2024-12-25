@@ -65,6 +65,8 @@ include     macros.inc      ; general macros
 	
 	Paddle_x          dw  50                                     	; start x position for left paddle
 	Paddle_y          dw  160                                    	; start y position for left paddle
+	oldPaddle_x       dw  50                                     	; start x position for left paddle
+	oldPaddle_y       dw  160                                    	; start y position for left paddle
 	paddle_x_old      dw  196
 	Paddle_x_right    dw  196                                    	; start x position for right paddle
 	Paddle_y_right    dw  160                                    	; start y position for right paddle
@@ -159,17 +161,19 @@ start_menu proc
 
 	                            call         boarder
 	                            call         draw_start_menu
-	                            mov          rectcolour,15            	;ball colour
+	                            mov          rectcolour,15          	;ball colour
 	                            mov          start_menu_option, 1
 	                            mov          ball_x, 84
 	                            mov          ball_y, 48
-	                            call         drawball                 	;draw on selected option
+	                            call         drawball               	;draw on selected option
+                              
 	                            xor          ax, ax
 	                            xor          bx, bx
 	                            xor          cx, cx
 	                            xor          dx, dx
 	kbloop:                     
 	                            mov          ah, 0Ch
+
 	                            int          21h                      	;clear keyboard buffer
 	                            call         delay
 
@@ -358,30 +362,30 @@ CheckBallWallCollision proc
 
 	; Check collision with left boundary
 	check_left_bound:           
-	                            cmp          ball_x, 17               	; game border starts at 15
-	                            jg           check_right_bound        	; if greater than continue checking on the rest of boundaries
-	                            mov          HorzBall,1               	; reverse the direction to move right
+	                            cmp          ball_x, 17             	; game border starts at 15
+	                            jg           check_right_bound      	; if greater than continue checking on the rest of boundaries
+	                            mov          HorzBall,1             	; reverse the direction to move right
 	
 	; Check collision with right boundary
 	check_right_bound:          
-	                            mov          ax, 158                  	; divider line is the right boundary for game border
+	                            mov          ax, 158                	; divider line is the right boundary for game border
 	                            sub          ax, ball_size
 	                            cmp          ball_x, ax
 	                            jl           check_upper_bound
-	                            mov          HorzBall,0               	; reverse the direction to move left
+	                            mov          HorzBall,0             	; reverse the direction to move left
 
 	; Check collision with top boundary
 	check_upper_bound:          
-	                            cmp          ball_y, 16               	; game border starts at 15
+	                            cmp          ball_y, 16             	; game border starts at 15
 	                            jg           check_lower_bound
-	                            mov          VertBall,0               	; reverse direction to move down
+	                            mov          VertBall,0             	; reverse direction to move down
 	; Check collision with bottom boundary
 	check_lower_bound:          
-	                            mov          ax, 168                  	; game border lower bound height - ball size
+	                            mov          ax, 168                	; game border lower bound height - ball size
 	                            sub          ax, ball_size
 	                            cmp          ball_y, ax
 	                            jl           end_check
-	                            mov          VertBall,1               	; reverse direction to move up
+	                            mov          VertBall,1             	; reverse direction to move up
 	end_check:                  
 	                            ret
 	
@@ -394,6 +398,7 @@ BallPaddleCollisionRight proc
 	                            mov          bx, Paddle_y_right
 	                            sub          bx, 10
 	                            mov          si, ball_x_right
+
 	                            add          si, 3                    	;half of ball width
 
 	                            cmp          si, ax
@@ -447,30 +452,30 @@ CheckBallWallCollisionRight proc
 
 	; Check collision with left boundary
 	check_left_bound_right:     
-	                            cmp          ball_x_right, 0A3h       	; game border starts at 15
-	                            jg           check_right_bound_right  	; if greater than continue checking on the rest of boundaries
-	                            mov          HorzBallRight,1          	; reverse the direction to move right
+	                            cmp          ball_x_right, 0A3h     	; game border starts at 15
+	                            jg           check_right_bound_right	; if greater than continue checking on the rest of boundaries
+	                            mov          HorzBallRight,1        	; reverse the direction to move right
 	
 	; Check collision with right boundary
 	check_right_bound_right:    
-	                            mov          ax, 130h                 	; divider line is the right boundary for game border
+	                            mov          ax, 130h               	; divider line is the right boundary for game border
 	                            sub          ax, ball_size
 	                            cmp          ball_x_right, ax
 	                            jl           check_upper_bound_right
-	                            mov          HorzBallRight,0          	; reverse the direction to move left
+	                            mov          HorzBallRight,0        	; reverse the direction to move left
 
 	; Check collision with top boundary
 	check_upper_bound_right:    
-	                            cmp          ball_y_right, 16         	; game border starts at 15
+	                            cmp          ball_y_right, 16       	; game border starts at 15
 	                            jg           check_lower_bound_right
-	                            mov          VertBallRight,0          	; reverse direction to move down
+	                            mov          VertBallRight,0        	; reverse direction to move down
 	; Check collision with bottom boundary
 	check_lower_bound_right:    
-	                            mov          ax, 168                  	; game border lower bound height - ball size
+	                            mov          ax, 168                	; game border lower bound height - ball size
 	                            sub          ax, ball_size
 	                            cmp          ball_y_right, ax
 	                            jl           end_check_right
-	                            mov          VertBallRight,1          	; reverse direction to move up
+	                            mov          VertBallRight,1        	; reverse direction to move up
 	end_check_right:            
 	                            ret
 	
