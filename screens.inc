@@ -1,5 +1,8 @@
 DrawScreen PROC
 	;call         CheckBox
+							call         CheckBallBrickCollision
+	                       call         DrawAllBricks
+	                       call         DrawAllBricksRight
 	                       mov          rectcolour, 0         	;draw ball black
 	                       call         drawball
 	                       call         drawballRight
@@ -56,9 +59,6 @@ DrawScreen PROC
 	;call         DrawBoxS
 	;call         BallBoxSCollision
 	NoBoxS:                
-	                       call         DrawAllBricks
-	                       call         DrawAllBricksRight
-												 call         CheckBallBrickCollision
 	;call         DrawBox
 	;call         DrawBoarder
 	                       ret
