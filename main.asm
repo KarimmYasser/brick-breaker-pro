@@ -912,7 +912,6 @@ CheckBallBrickCollision proc
 	                        ret
 CheckBallBrickCollision endp
 
-
 CheckCollision PROC
 	                        push         ax
 	; condition: brick_y + brick_height >= ball_y
@@ -921,92 +920,22 @@ CheckCollision PROC
 	                        add          ax, brick_height
 	                        add          ax, 1
 	                        cmp          ball_y, ax
-	                        jg           check_top
+	                        jg           check_collision_end
 
 	; check if collision is within the current brick width
 	; condition ball_x > brick_x and ball_x < brick_x + brick_width
 
 	                        mov          ax, ball_x
 	                        cmp          ax, starting_x_left[si]
-	                        jl           check_top
+	                        jl           check_collision_end
 
 	                        mov          ax,  starting_x_left[si]
 	                        add          ax, brick_width
 	                        cmp          ball_x, ax
-	                        jg           check_top
-
-	                        call         HandleCollision
-	                        mov          VertBall, 0             	; move down
-	                        jmp          check_collision_end
-
-	; condition: ball_y + ball_size >= brick_y
-	check_top:              
-	                        mov          ax, ball_y
-	                        add          ax, ball_size
-	                        add          ax, 1
-	                        cmp          ax, starting_y[si]
-	                        jl           check_left
-
-	; check if collision is within the current brick width
-	; condition ball_x > brick_x and ball_x < brick_x + brick_width
-
-	                        mov          ax, ball_x
-	                        cmp          ax, starting_x_left[si]
-	                        jl           check_left
-
-	                        mov          ax,  starting_x_left[si]
-	                        add          ax, brick_width
-	                        cmp          ball_x, ax
-	                        jg           check_left
-
-	                        call         HandleCollision
-	                        mov          VertBall, 1             	; move up
-	                        jmp          check_collision_end
-
-
-	; condition: ball_x + ball_size >= brick_x
-	check_left:             
-	                        mov          ax, ball_x
-	                        add          ax, ball_size
-	                        add          ax, 1
-	                        cmp          ax, starting_x_left[si]
-	                        jl           check_right
-
-	; check if collision is within current brick height
-	; condition ball_y > brick_y and ball_y < brick_y + brick_height
-	                        mov          ax, ball_y
-	                        cmp          ax, starting_y[si]
-	                        jl           check_right
-
-	                        mov          ax, starting_y[si]
-	                        add          ax, brick_height
-	                        cmp          ball_y, ax
-	                        jg           check_right
-
-	                        call         HandleCollision
-	                        mov          HorzBall, 0             	; move left
-	                        jmp          check_collision_end
-
-	; condition: brick_x + brick_width >= ball_x
-	check_right:            
-	                        mov          ax,  starting_x_left[si]
-	                        add          ax, brick_width
-	                        cmp          ax, ball_x
-	                        jl           check_collision_end
-
-	; check if collision is within current brick height
-	; condition ball_y > brick_y and ball_y < brick_y + brick_height
-	                        mov          ax, ball_y
-	                        cmp          ax, starting_y[si]
-	                        jl           check_collision_end
-
-	                        mov          ax, starting_y[si]
-	                        add          ax, brick_height
-	                        cmp          ball_y, ax
 	                        jg           check_collision_end
 
 	                        call         HandleCollision
-	                        mov          HorzBall, 1             	; move right
+	                        mov          VertBall, 0             	; move down
 	                        jmp          check_collision_end
 
 	check_collision_end:    
