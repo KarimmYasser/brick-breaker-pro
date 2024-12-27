@@ -1,28 +1,3 @@
-WaitOneMillisecond MACRO
-	; Save registers
-	                   push ax
-	                   push cx
-	                   push dx
-
-	; Get the initial timer tick count
-	                   mov  ah, 00h
-	                   int  1Ah
-	                   mov  cx, dx    	; Store the initial tick count in CX
-
-	wait_loop:         
-	; Get the current timer tick count
-	                   mov  ah, 00h
-	                   int  1Ah
-	                   sub  dx, cx
-	                   cmp  dx, 0FFFFh	; Compare the current tick count with the initial tick count
-	                   je   wait_loop 	; If they are equal, keep waiting
-
-	; Restore registers
-	                   pop  dx
-	                   pop  cx
-	                   pop  ax
-ENDM
-
 .186
 .MODEL COMPACT
 .STACK 4084
@@ -61,7 +36,7 @@ include     macros.inc      ; general macros
 	HeartColumn       db  0
 	buffer            db  100 dup('$')
 	ScoreName         db  "Score: $"
-	LevelName         db  "Level: $"
+	LevelName         db  "Enjoy Game$"
 	
 	Paddle_x          dw  50                                     	; start x position for left paddle
 	Paddle_y          dw  160                                    	; start y position for left paddle
@@ -91,7 +66,7 @@ include     macros.inc      ; general macros
 	three             db  '3)$'
 	levelnum_string   db  '(1)        (2)       (3)$'
 	level_string      db  'LEVEL      LEVEL     LEVEL$'
-	winScreenStr      db  'YOU HAVE COMPLETED THE GAME$'
+	winScreenStr      db  'GAME OVER$'
 	credits           db  'MADE BY: KARIM ~ HABIBA ~ HELANA$'
 	winContinue       db  'DO U WISH TO CONTINUE?$'
 	enterContinue     db  'Press enter to continue$'
@@ -161,11 +136,11 @@ start_menu proc
 
 	                            call         boarder
 	                            call         draw_start_menu
-	                            mov          rectcolour,15          	;ball colour
+	                            mov          rectcolour,15            	;ball colour
 	                            mov          start_menu_option, 1
 	                            mov          ball_x, 84
 	                            mov          ball_y, 48
-	                            call         drawball               	;draw on selected option
+	                            call         drawball                 	;draw on selected option
                               
 	                            xor          ax, ax
 	                            xor          bx, bx
@@ -362,32 +337,41 @@ CheckBallWallCollision proc
 
 	; Check collision with left boundary
 	check_left_bound:           
-	                            cmp          ball_x, 17             	; game border starts at 15
-	                            jg           check_right_bound      	; if greater than continue checking on the rest of boundaries
-	                            mov          HorzBall,1             	; reverse the direction to move right
+	                            cmp          ball_x, 17               	; game border starts at 15
+	                            jg           check_right_bound        	; if greater than continue checking on the rest of boundaries
+	                            mov          HorzBall,1               	; reverse the direction to move right
 	
 	; Check collision with right boundary
 	check_right_bound:          
-	                            mov          ax, 158                	; divider line is the right boundary for game border
+	                            mov          ax, 158                  	; divider line is the right boundary for game border
 	                            sub          ax, ball_size
 	                            cmp          ball_x, ax
 	                            jl           check_upper_bound
-	                            mov          HorzBall,0             	; reverse the direction to move left
+	                            mov          HorzBall,0               	; reverse the direction to move left
 
 	; Check collision with top boundary
 	check_upper_bound:          
-	                            cmp          ball_y, 16             	; game border starts at 15
+	                            cmp          ball_y, 16               	; game border starts at 15
 	                            jg           check_lower_bound
-	                            mov          VertBall,0             	; reverse direction to move down
+	                            mov          VertBall,0               	; reverse direction to move down
 	; Check collision with bottom boundary
 	check_lower_bound:          
-	                            mov          ax, 168                	; game border lower bound height - ball size
+	                            mov          ax, 168                  	; game border lower bound height - ball size
 	                            sub          ax, ball_size
 	                            cmp          ball_y, ax
 	                            jl           end_check
-	                            mov          VertBall,1             	; reverse direction to move up
+								dec playerOneLives
+								jz forlose
+								mov ball_x, 100
+								mov ball_y, 100
+								mov VertBall,0
+								mov HorzBall,0
 	end_check:                  
 	                            ret
+	;----------------------
+	forlose:                    call winscreen
+	                            jmp startmenu
+	;----------------------
 	
 CheckBallWallCollision endp
 BallPaddleCollisionRight proc
@@ -452,69 +436,76 @@ CheckBallWallCollisionRight proc
 
 	; Check collision with left boundary
 	check_left_bound_right:     
-	                            cmp          ball_x_right, 0A3h     	; game border starts at 15
-	                            jg           check_right_bound_right	; if greater than continue checking on the rest of boundaries
-	                            mov          HorzBallRight,1        	; reverse the direction to move right
+	                            cmp          ball_x_right, 0A3h       	; game border starts at 15
+	                            jg           check_right_bound_right  	; if greater than continue checking on the rest of boundaries
+	                            mov          HorzBallRight,1          	; reverse the direction to move right
 	
 	; Check collision with right boundary
 	check_right_bound_right:    
-	                            mov          ax, 130h               	; divider line is the right boundary for game border
+	                            mov          ax, 130h                 	; divider line is the right boundary for game border
 	                            sub          ax, ball_size
 	                            cmp          ball_x_right, ax
 	                            jl           check_upper_bound_right
-	                            mov          HorzBallRight,0        	; reverse the direction to move left
+	                            mov          HorzBallRight,0          	; reverse the direction to move left
 
 	; Check collision with top boundary
 	check_upper_bound_right:    
-	                            cmp          ball_y_right, 16       	; game border starts at 15
+	                            cmp          ball_y_right, 16         	; game border starts at 15
 	                            jg           check_lower_bound_right
-	                            mov          VertBallRight,0        	; reverse direction to move down
+	                            mov          VertBallRight,0          	; reverse direction to move down
 	; Check collision with bottom boundary
 	check_lower_bound_right:    
-	                            mov          ax, 168                	; game border lower bound height - ball size
+	                            mov          ax, 168                  	; game border lower bound height - ball size
 	                            sub          ax, ball_size
 	                            cmp          ball_y_right, ax
 	                            jl           end_check_right
-	                            mov          VertBallRight,1        	; reverse direction to move up
+	                            mov          VertBallRight,1          	; reverse direction to move up
 	end_check_right:            
 	                            ret
 	
 CheckBallWallCollisionRight endp
-CheckBallBrickCollision proc
+
+CheckBallBrickCollision2 proc
+	                            push         si
+	                            push         cx
+
 	                            mov          si, 0
 	                            mov          cx, bricks_no
 	collisionLoop:              
 	                            cmp          Bool_Box_left[si], 0
 	                            je           nextIteration
 
-	                            call         checkCollision
+	                            call         checkCollision2
 	nextIteration:              
 	                            add          si, 2
-	                            dec          cx
-	                            cmp          cx, 0
-	                            jg           collisionLoop
+	                            loop           collisionLoop
 			
-	                            ret
-
-CheckBallBrickCollision endp
-
-CheckBallBrickCollision2 proc
-	                            mov          si, 0
-	                            mov          cx, bricks_no
-	collisionLoop2:             
-	                            cmp          Bool_Box_left[si], 0
-	                            je           nextIteration2
-
-	                            call         checkCollision2
-	nextIteration2:             
-	                            add          si, 2
-	                            dec          cx
-	                            cmp          cx, 0
-	                            jg           collisionLoop2
-			
+	                            pop          cx
+	                            pop          si
 	                            ret
 
 CheckBallBrickCollision2 endp
+
+CheckBallBrickCollision proc
+	                            push         si
+	                            push         cx
+
+	                            mov          si, 0
+	                            mov          cx, bricks_no
+	collisionLoop2:             
+	                            cmp          Bool_Box[si], 0
+	                            je           nextIteration2
+
+	                            call         checkCollision
+	nextIteration2:             
+	                            add          si, 2
+	                            loop         collisionLoop2
+
+	                            pop          cx
+	                            pop          si
+	                            ret
+
+CheckBallBrickCollision endp
 
 CheckCollision PROC
 	                            push         ax
@@ -522,7 +513,7 @@ CheckCollision PROC
 	check_bottom:               
 	                            mov          ax, starting_y[si]
 	                            add          ax, brick_height
-	                            add          ax, 1
+	                            add          ax, 2
 	                            cmp          ball_y, ax
 	                            jg           check_collision_end
 
@@ -538,7 +529,8 @@ CheckCollision PROC
 	                            cmp          ball_x, ax
 	                            jg           check_collision_end
 
-	                            call         HandleCollision
+	; call         HandleCollision
+	                            dec          Bool_Box[si]
 	                            mov          VertBall, 0              	; move down
 	                            jmp          check_collision_end
 
@@ -553,7 +545,7 @@ CheckCollision2 PROC
 	check_bottom2:              
 	                            mov          ax, starting_y[si]
 	                            add          ax, brick_height
-	                            add          ax, 1
+	                            add          ax, 2
 	                            cmp          ball_y_right, ax
 	                            jg           check_collision_end2
 
@@ -569,19 +561,15 @@ CheckCollision2 PROC
 	                            cmp          ball_x_right, ax
 	                            jg           check_collision_end2
 
-	                            call         HandleCollision
-	                            mov          VertBall, 0              	; move down
+	; call         HandleCollision2
+	                            dec          Bool_Box_left[si]
+	                            mov          VertBallRight, 0         	; move down
 	                            jmp          check_collision_end2
 
 	check_collision_end2:       
 	                            pop          ax
 	                            ret
-checkCollision ENDP
-
-HandleCollision PROC
-	                            dec          Bool_Box[si]
-	                            ret
-HandleCollision ENDP
+checkCollision2 ENDP
 
 Main proc far
 	; Initialize the data segment

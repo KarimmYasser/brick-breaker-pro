@@ -172,10 +172,13 @@ DrawHearts PROC
 
 	draw_third_heart:      
 	                       SetCursorPos 4 HeartColumn
-	                       DrawHeart
+	                       DrawHeart 1100b
+						   jmp second_heart
 
 	skip_third_heart:      
-
+	                       SetCursorPos 4 HeartColumn
+	                       DrawHeart 0							
+	second_heart:
 	; Check if CurrentLives > 1 (for second heart)
 	                       mov          ax, CurrentLives
 	                       cmp          ax, 2
@@ -183,9 +186,13 @@ DrawHearts PROC
 
 	draw_second_heart:     
 	                       SetCursorPos 3 HeartColumn
-	                       DrawHeart
+	                       DrawHeart 1100b
+						   jmp first_heart
 
 	skip_second_heart:     
+	                       SetCursorPos 3 HeartColumn
+	                       DrawHeart 0
+	first_heart:
 	; Check if CurrentLives > 0 (for first heart)
 	                       mov          ax, CurrentLives
 	                       cmp          ax, 1
@@ -193,10 +200,13 @@ DrawHearts PROC
 
 	draw_first_heart:      
 	                       SetCursorPos 2 HeartColumn
-	                       DrawHeart
+	                       DrawHeart 1100b
+						   ret
 
 	skip_first_heart:      
-	                       ret
+	                       SetCursorPos 2 HeartColumn
+	                       DrawHeart 0
+						   ret
 DrawHearts ENDP
 DrawBorderStrings proc
 	; Save the registers
@@ -209,13 +219,13 @@ DrawBorderStrings proc
 	                       push         di
 
 	                       SetCursorPos 23 2
-	                       PrintString  ScoreName
+	                       ;PrintString  ScoreName
 
 	                       SetCursorPos 24 2
 	                       PrintString  LevelName
 
 	                       SetCursorPos 23 20
-	                       PrintString  ScoreName
+	                       ;PrintString  ScoreName
 	                       SetCursorPos 24 20
 	                       PrintString  LevelName
 
@@ -238,7 +248,7 @@ DrawAllBricks PROC
 	                       mov          ax, [si]
 	                       cmp          ax, 0
 	                       mov          color, 00h
-												 je 					draw
+						je 					draw
 
 	                       cmp          ax, 1
 	                       mov          color, 59h

@@ -1,19 +1,27 @@
 DrawScreen PROC
-	;call         CheckBox
-												 call         CheckBallBrickCollision
-												 call 				CheckBallBrickCollision2
+	call         CheckBox
 	                       call         DrawAllBricks
-	                       call         DrawAllBricksRight
+						   call         CheckBallBrickCollision
+						;    call 		CheckBallBrickCollision2
+	                    ;    call         DrawAllBricksRight
 	                       mov          rectcolour, 0         	;draw ball black
 	                       call         drawball
-	                       call         drawballRight
+	                    ;    call         drawballRight
 	                       call         MoveBall
-	                       call         MoveBallRight
+	                    ;    call         MoveBallRight
 	                       call         CheckBallWallCollision
-	                       call         CheckBallWallCollisionRight
+						   mov ax,playerOneLives
+						   mov CurrentLives,ax
+						   mov HeartColumn,0
+						   call DrawHearts
+						   mov ax,playerTwoLives
+						   mov CurrentLives,ax
+						   mov HeartColumn,79
+						   call DrawHearts
+	                    ;    call         CheckBallWallCollisionRight
 	                       mov          rectcolour, 15
 	                       call         drawball
-	                       call         drawballRight
+	                    ;    call         drawballRight
 	;call         BallBoxCollision
 	                       cmp          Level_Selector, 1
 	                       je           level1
@@ -25,13 +33,13 @@ DrawScreen PROC
 	                       mov          level_paddle_x, 30
 	                       mov          level_padhalfx, 15
 	                       call         BallPaddleCollision
-	                       call         BallPaddleCollisionRight
+	                    ;    call         BallPaddleCollisionRight
 	                       mov          rectwidth, 30
 	                       call         DrawPaddleBlack
 	                       mov          rectcolour, 15
 	                       call         DrawPaddle
-						   					 call 	      DrawPaddleRightBlack
-	                       call         DrawPaddleRight
+						   					;  call 	      DrawPaddleRightBlack
+	                    ;    call         DrawPaddleRight
 	                       jmp          NoBoxS
 
 
@@ -43,8 +51,8 @@ DrawScreen PROC
 	                       call         DrawPaddleBlack
 	                       mov          rectcolour, 15
 	                       call         DrawPaddle
-						             call 	      DrawPaddleRightBlack
-	                       call         DrawPaddleRight
+						            ;  call 	      DrawPaddleRightBlack
+	                    ;    call         DrawPaddleRight
 	                       jmp          NoBoxS
 	level3:                
 	                       mov          level_paddle_x, 20
@@ -54,8 +62,8 @@ DrawScreen PROC
 	                       call         DrawPaddleBlack
 	                       mov          rectcolour, 15
 	                       call         DrawPaddle
-						            call 	        DrawPaddleRightBlack
-	                       call         DrawPaddleRight
+						            ; call 	        DrawPaddleRightBlack
+	                    ;    call         DrawPaddleRight
 	;call         BallBoxFCollision
 	;call         DrawBoxF
 	                       cmp          bool_boxS, 1
@@ -76,12 +84,12 @@ winscreen proc
 	                       call         boarder
 	
 	
-	                       SetCursorPos 3, 7
+	                       SetCursorPos 5, 15
 	
 	                       lea          dx, winScreenStr
 	                       mov          ah, 09h
 	                       int          21h
-	
+	 
 	loppypart2:            
 	                       mov          ax, 0
 	                       mov          bx, 0
@@ -98,21 +106,21 @@ winscreen proc
 	
 	
 	
-	                       SetCursorPos 6,8
+	                       SetCursorPos 8,8
 	
 	                       lea          dx, winContinue
 	                       mov          ah, 09h
 	                       int          21h
 	
 	
-	                       SetCursorPos 8,8
+	                       SetCursorPos 10,8
 	                       
 	                       lea          dx, enterContinue
 	                       mov          ah, 09h
 	                       int          21h
 	
 	
-	                       SetCursorPos 10,8
+	                       SetCursorPos 12,8
 	
 	                       lea          dx, nToQuit
 	                       mov          ah, 09h
