@@ -136,12 +136,13 @@ start_menu proc
 
 	                            call         boarder
 	                            call         draw_start_menu
-	                            mov          rectcolour,15            	;ball colour
+
+	                            mov          rectcolour,15          	;ball colour
 	                            mov          start_menu_option, 1
 	                            mov          ball_x, 84
 	                            mov          ball_y, 48
-	                            call         drawball                 	;draw on selected option
-                              
+	                            call         drawball               	;draw on selected option
+
 	                            xor          ax, ax
 	                            xor          bx, bx
 	                            xor          cx, cx
@@ -219,7 +220,8 @@ start_menu proc
 	                            jmp          calcOption
 
 	movedown:                   
-	                            mov          rectcolour, 0            	; erase ball
+	                            mov          rectcolour, 0           	; erase ball
+
 	                            call         drawball
 	                            inc          start_menu_option
 	                            cmp          start_menu_option, 4
@@ -268,7 +270,7 @@ start_menu proc
 	exitsend:                   
 	                            SetCursorPos 18, 1
 	                            mov          ah, 4Ch
-	                            int          21h                      	;exit
+	                            int          21h                     	;exit
 	stgm:                       
 	                            mov          dx, 3F8H
 	                            mov          al, '1'
@@ -284,7 +286,8 @@ BallPaddleCollision proc
 	                            mov          bx, Paddle_y
 	                            sub          bx, 10
 	                            mov          si, ball_x
-	                            add          si, 3                    	;half of ball width
+
+	                            add          si, 3                   	;half of ball width
 
 	                            cmp          si, ax
 	                            jl           NoCollision
@@ -337,9 +340,10 @@ CheckBallWallCollision proc
 
 	; Check collision with left boundary
 	check_left_bound:           
-	                            cmp          ball_x, 17               	; game border starts at 15
-	                            jg           check_right_bound        	; if greater than continue checking on the rest of boundaries
-	                            mov          HorzBall,1               	; reverse the direction to move right
+
+	                            cmp          ball_x, 17             	; game border starts at 15
+	                            jg           check_right_bound      	; if greater than continue checking on the rest of boundaries
+	                            mov          HorzBall,1             	; reverse the direction to move right
 	
 	; Check collision with right boundary
 	check_right_bound:          
@@ -382,8 +386,7 @@ BallPaddleCollisionRight proc
 	                            mov          bx, Paddle_y_right
 	                            sub          bx, 10
 	                            mov          si, ball_x_right
-
-	                            add          si, 3                    	;half of ball width
+	                            add          si, 3                   	;half of ball width
 
 	                            cmp          si, ax
 	                            jl           NoCollisionRight
@@ -538,6 +541,23 @@ CheckCollision PROC
 	                            pop          ax
 	                            ret
 checkCollision ENDP
+CheckBallBrickCollision2 proc
+	                            mov          si, 0
+	                            mov          cx, bricks_no
+	collisionLoop2:             
+	                            cmp          Bool_Box_left[si], 0
+	                            je           nextIteration2
+
+	                            call         checkCollision2
+	nextIteration2:             
+	                            add          si, 2
+	                            dec          cx
+	                            cmp          cx, 0
+	                            jg           collisionLoop2
+			
+	                            ret
+
+CheckBallBrickCollision2 endp
 
 CheckCollision2 PROC
 	                            push         ax
@@ -561,15 +581,24 @@ CheckCollision2 PROC
 	                            cmp          ball_x_right, ax
 	                            jg           check_collision_end2
 
-	; call         HandleCollision2
-	                            dec          Bool_Box_left[si]
-	                            mov          VertBallRight, 0         	; move down
+	                            call         HandleCollision2
+	                            mov          VertBallRight, 0              	; move down
 	                            jmp          check_collision_end2
 
 	check_collision_end2:       
 	                            pop          ax
+
 	                            ret
 checkCollision2 ENDP
+
+HandleCollision PROC
+	                            dec          Bool_Box[si]
+	                            ret
+HandleCollision ENDP
+HandleCollision2 PROC
+	                            dec          Bool_Box_left[si]
+	                            ret
+HandleCollision2 ENDP
 
 Main proc far
 	; Initialize the data segment
@@ -595,7 +624,7 @@ Main proc far
 	                            mov          playerTwoScore, 0
 
 	                            mov          bool_boxs, 1
-	                            call         BoxCreator               	;intialize the boxs based on the level
+	                            call         BoxCreator              	;intialize the boxs based on the level
 	
 	;;CALL START MENU
 	startmenu:                  
@@ -688,6 +717,6 @@ Main proc far
 	;;QUIT GAME
 	                            SetCursorPos 18, 1
 	                            mov          ah, 4Ch
-	                            int          21h                      	;exit
+	                            int          21h                     	;exit
 Main endp
 END Main

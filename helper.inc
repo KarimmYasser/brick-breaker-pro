@@ -9,10 +9,10 @@ BoxCreator PROC
 	loopBC:                
 	
 	                       mov          [si], ax
-							mov          [di], ax
+												 mov          [di], ax
 	
 	                       add          si, 2
-							add          di, 2
+												 add          di, 2
 	
 	                       loop         loopBC
 	
