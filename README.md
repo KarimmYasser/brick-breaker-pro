@@ -50,8 +50,8 @@ The game includes a **start menu** where players can initiate a chat with their 
 ## How to Build and Run  
 1. Assemble the code using an x8086 assembler, such as **MASM** or **TASM**.  
    ```bash
-   masm brickbreaker.asm;
-   link brickbreaker.obj;
+   masm main.asm;
+   link main.obj;
    ```
 2. Configure the serial communication port settings (e.g., COM1).  
 3. Load the executable into **DOSBox** and start the game.  
