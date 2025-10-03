@@ -1,5 +1,7 @@
 # Brick Breaker Pro Game  
 
+![Game Cover](bricks.png)
+
 ## Overview  
 **Brick Breaker Pro** is a classic arcade-style game developed using **x8086 Assembly Language**, featuring a **multiplayer mode** enabled via **serial communication**. Players compete to break bricks while managing lives, progressing through challenging levels with increasing difficulty.  
 
